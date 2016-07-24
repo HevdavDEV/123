@@ -1,0 +1,482 @@
+From 5c6194b5d4eca7bc4fb44a81345b4469dfd18a99 Mon Sep 17 00:00:00 2001
+From: QQrofl <kas93@inbox.ru>
+Date: Tue, 8 Oct 2013 23:39:33 +0300
+Subject: [PATCH] * Implemented: Challenge system [2x2, 3x3, 5x5] Syntax: -
+ Challenge system for events! We have 2 teams (party). (Hydra Raid/Party
+ Leader) - Team 1 (Kalimist Raid/Party Leader) - Team 2 Hydra + Flyn (party
+ 2s) Kalimist + Despondency (party 2s)
+
+<GM> Leomancer: .challenge 2x2 Hydra Kalimist // You need to specify only the leaders
+Hydra, Kalimist, Flyn, Despondency invited skirmish 2s.
+
+by: L30m4nc3r <kas93@inbox.ru>
+---
+ sql/nase/world/00003_challenge.sql                 |  17 ++-
+ src/server/game/Battlegrounds/Battleground.cpp     |   5 +-
+ .../game/Battlegrounds/BattlegroundQueue.cpp       |  42 +++++-
+ src/server/game/Battlegrounds/BattlegroundQueue.h  |   3 +-
+ src/server/game/Entities/Player/Player.cpp         |   4 +
+ src/server/game/Entities/Player/Player.h           |  18 ++-
+ src/server/game/Handlers/BattleGroundHandler.cpp   |  24 ++-
+ src/server/game/Scripting/ScriptLoader.cpp         |   3 +-
+ src/server/scripts/Custom/CMakeLists.txt           |   1 +
+ .../scripts/Custom/custom_challenge_command.cpp    | 165 +++++++++++++++++++++
+ 10 files changed, 257 insertions(+), 25 deletions(-)
+ create mode 100644 src/server/scripts/Custom/custom_challenge_command.cpp
+
+diff --git a/sql/nase/world/00003_challenge.sql b/sql/nase/world/00003_challenge.sql
+index f9cf643..1ffa1fd 100755
+--- a/sql/nase/world/00003_challenge.sql
++++ b/sql/nase/world/00003_challenge.sql
+@@ -1,8 +1,9 @@
+--- World db
+-DELETE FROM `gameobject_template` WHERE `entry` = 42000;
+-INSERT INTO `gameobject_template`(`entry`, `type`, `displayId`, `name`, `IconName`, `size`, `ScriptName`, `WDBVerified`) VALUES(42000, 10, 327, 'Faster Start', 'PVP' , 1, 'FastArenaCrystal', 12340);
+- 
+-DELETE FROM `command` WHERE `name` = 'challenge';
+-INSERT INTO `command` VALUES ('challenge', '0', 'Syntax: .challenge [$name]\nInvite you and your target to 1x1 arena.');
+-DELETE FROM `command` WHERE `name` = 'challenge players';
+-INSERT INTO `command` VALUES ('challenge players', '1', 'Syntax: .challenge players $name1 $name2\nInvite two players to 1x1 arena.');
+\ No newline at end of file
++DELETE FROM `command` WHERE `name` = 'challenge';	
++INSERT INTO `command` (`name`, `security`, `help`) VALUES ('challenge', 1, 'Syntax: .challenge $subcommand $player1 $player2.\nAllow to join arena two party leader.');
++DELETE FROM `command` WHERE `name` = 'challenge 2x2';	
++INSERT INTO `command` (`name`, `security`, `help`) VALUES ('challenge 2x2', 1, 'Syntax: .challenge 2x2 $player1 $player2\nUse .help challenge for more info.');
++DELETE FROM `command` WHERE `name` = 'challenge 3x3';	
++INSERT INTO `command` (`name`, `security`, `help`) VALUES ('challenge 3x3', 1, 'Syntax: .challenge 3x3 $player1 $player2\nUse .help challenge for more info.');
++DELETE FROM `command` WHERE `name` = 'challenge 5x5';	
++INSERT INTO `command` (`name`, `security`, `help`) VALUES ('challenge 5x5', 1, 'Syntax: .challenge 5x5 $player1 $player2\nUse .help challenge for more info.');
++
+diff --git a/src/server/game/Battlegrounds/Battleground.cpp b/src/server/game/Battlegrounds/Battleground.cpp
+index 308c08e..96300ae 100755
+--- a/src/server/game/Battlegrounds/Battleground.cpp
++++ b/src/server/game/Battlegrounds/Battleground.cpp
+@@ -878,7 +878,10 @@ void Battleground::EndBattleground(uint32 winner)
+         Player* player = _GetPlayer(itr, "EndBattleground");
+         if (!player)
+             continue;
+-
++        // challenge script by L30m4nc3r
++        if (player->getSkirmishStatus((ArenaType)m_ArenaType) == SKIRMISH_JOINED)
++            player->setSkirmishStatus((ArenaType)m_ArenaType, SKIRMISH_NONE);
++        // challenge script by L30m4nc3r
+         // should remove spirit of redemption
+         if (player->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
+             player->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
+diff --git a/src/server/game/Battlegrounds/BattlegroundQueue.cpp b/src/server/game/Battlegrounds/BattlegroundQueue.cpp
+index 1481b63..ff2e7b6 100755
+--- a/src/server/game/Battlegrounds/BattlegroundQueue.cpp
++++ b/src/server/game/Battlegrounds/BattlegroundQueue.cpp
+@@ -128,14 +128,14 @@ bool BattlegroundQueue::SelectionPool::AddGroup(GroupQueueInfo* ginfo, uint32 de
+ /*********************************************************/
+ 
+ // add group or player (grp == NULL) to bg queue with the given leader and bg specifications
+-GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, BattlegroundTypeId BgTypeId, PvPDifficultyEntry const*  bracketEntry, uint8 ArenaType, bool isRated, bool isPremade, uint32 ArenaRating, uint32 MatchmakerRating, uint32 arenateamid)
++GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, BattlegroundTypeId BgTypeId, PvPDifficultyEntry const*  bracketEntry, uint8 arenaType, bool isRated, bool isPremade, uint32 ArenaRating, uint32 MatchmakerRating, uint32 arenateamid)
+ {
+     BattlegroundBracketId bracketId = bracketEntry->GetBracketId();
+ 
+     // create new ginfo
+     GroupQueueInfo* ginfo            = new GroupQueueInfo;
+     ginfo->BgTypeId                  = BgTypeId;
+-    ginfo->ArenaType                 = ArenaType;
++    ginfo->ArenaType                 = arenaType;
+     ginfo->ArenaTeamId               = arenateamid;
+     ginfo->IsRated                   = isRated;
+     ginfo->IsInvitedToBGInstanceGUID = 0;
+@@ -147,7 +147,7 @@ GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, Battlegr
+     ginfo->OpponentsTeamRating       = 0;
+     ginfo->OpponentsMatchmakerRating = 0;
+ 	ginfo->DynamicMMRindex			 = 0;
+-
++    ginfo->IsCustomSkirmish          = (leader->getSkirmishStatus((ArenaType)arenaType) == SKIRMISH_JOINED); // challenge script by L30m4nc3r
+     ginfo->Players.clear();
+ 
+     //compute index (if group is premade or joined a rated match) to queues
+@@ -663,19 +663,49 @@ bool BattlegroundQueue::CheckPremadeMatch(BattlegroundBracketId bracket_id, uint
+ bool BattlegroundQueue::CheckNormalMatch(Battleground* bg_template, BattlegroundBracketId bracket_id, uint32 minPlayers, uint32 maxPlayers)
+ {
+     GroupsQueueType::const_iterator itr_team[BG_TEAMS_COUNT];
++    // challenge script by L30m4nc3r
++    uint8 skirmishGroups = 0;
++    GroupQueueInfo *firstSkirmishGrp;
+     for (uint32 i = 0; i < BG_TEAMS_COUNT; i++)
+     {
+         itr_team[i] = m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE + i].begin();
+         for (; itr_team[i] != m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE + i].end(); ++(itr_team[i]))
+         {
+-            if (!(*(itr_team[i]))->IsInvitedToBGInstanceGUID)
++            if ((*(itr_team[i]))->IsCustomSkirmish)
+             {
+-                m_SelectionPools[i].AddGroup(*(itr_team[i]), maxPlayers);
+-                if (m_SelectionPools[i].GetPlayerCount() >= minPlayers)
++                if (!skirmishGroups)
++                    firstSkirmishGrp = *(itr_team[i]);
++                skirmishGroups++;
++                if (skirmishGroups == 2)
++                {
++                    m_SelectionPools[i].AddGroup(firstSkirmishGrp, maxPlayers);
++                    m_SelectionPools[i].AddGroup(*(itr_team[i]), maxPlayers);
+                     break;
++                }
++            }
++        }
++    }
++
++    if (skirmishGroups != 2)
++    {
++        for (uint32 i = 0; i < BG_TEAMS_COUNT; i++)
++        {
++            itr_team[i] = m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE + i].begin();
++            for (; itr_team[i] != m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE + i].end(); ++(itr_team[i]))
++            {
++                if ((*(itr_team[i]))->IsCustomSkirmish)
++                    continue;
++
++                if (!(*(itr_team[i]))->IsInvitedToBGInstanceGUID)
++                {
++                    m_SelectionPools[i].AddGroup(*(itr_team[i]), maxPlayers);
++                    if (m_SelectionPools[i].GetPlayerCount() >= minPlayers)
++                        break;
++                }
+             }
+         }
+     }
++    // challenge script by L30m4nc3r
+     //try to invite same number of players - this cycle may cause longer wait time even if there are enough players in queue, but we want ballanced bg
+     uint32 j = TEAM_ALLIANCE;
+     if (m_SelectionPools[TEAM_HORDE].GetPlayerCount() < m_SelectionPools[TEAM_ALLIANCE].GetPlayerCount())
+diff --git a/src/server/game/Battlegrounds/BattlegroundQueue.h b/src/server/game/Battlegrounds/BattlegroundQueue.h
+index 7512db8..67d7ad6 100755
+--- a/src/server/game/Battlegrounds/BattlegroundQueue.h
++++ b/src/server/game/Battlegrounds/BattlegroundQueue.h
+@@ -44,6 +44,7 @@ struct GroupQueueInfo                                       // stores informatio
+     uint32  Team;                                           // Player team (ALLIANCE/HORDE)
+     BattlegroundTypeId BgTypeId;                            // battleground type id
+     bool    IsRated;                                        // rated
++    bool    IsCustomSkirmish;                               // challenge script by L30m4nc3r
+     uint8   ArenaType;                                      // 2v2, 3v3, 5v5 or 0 when BG
+     uint32  ArenaTeamId;                                    // team id if rated match
+     uint32  JoinTime;                                       // time when group was added
+@@ -79,7 +80,7 @@ class BattlegroundQueue
+         bool CheckPremadeMatch(BattlegroundBracketId bracket_id, uint32 MinPlayersPerTeam, uint32 MaxPlayersPerTeam);
+         bool CheckNormalMatch(Battleground* bg_template, BattlegroundBracketId bracket_id, uint32 minPlayers, uint32 maxPlayers);
+         bool CheckSkirmishForSameFaction(BattlegroundBracketId bracket_id, uint32 minPlayersPerTeam);
+-        GroupQueueInfo* AddGroup(Player* leader, Group* group, BattlegroundTypeId bgTypeId, PvPDifficultyEntry const*  bracketEntry, uint8 ArenaType, bool isRated, bool isPremade, uint32 ArenaRating, uint32 MatchmakerRating, uint32 ArenaTeamId = 0);
++        GroupQueueInfo* AddGroup(Player* leader, Group* group, BattlegroundTypeId bgTypeId, PvPDifficultyEntry const*  bracketEntry, uint8 arenaType, bool isRated, bool isPremade, uint32 ArenaRating, uint32 MatchmakerRating, uint32 ArenaTeamId = 0);
+         void RemovePlayer(uint64 guid, bool decreaseInvitedCount);
+         bool IsPlayerInvited(uint64 pl_guid, const uint32 bgInstanceGuid, const uint32 removeTime);
+         bool GetPlayerGroupInfoData(uint64 guid, GroupQueueInfo* ginfo);
+diff --git a/src/server/game/Entities/Player/Player.cpp b/src/server/game/Entities/Player/Player.cpp
+index f23b27c..fd6e403 100755
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@ -873,6 +873,10 @@ Player::Player(WorldSession* session): Unit(true)
+     spectateCanceled = false;
+     spectateFrom = NULL;
+ 
++    // challenge script by L30m4nc3r
++    for (int i = 0; i < ARENA_TYPE_5v5 + 1; ++i)
++        skirmishStatus[i] = SKIRMISH_NONE;
++    // challenge script by L30m4nc3r
+     SetPendingBind(0, 0);
+ 
+     _activeCheats = CHEAT_NONE;
+diff --git a/src/server/game/Entities/Player/Player.h b/src/server/game/Entities/Player/Player.h
+index 40f9f81..754d98c 100755
+--- a/src/server/game/Entities/Player/Player.h
++++ b/src/server/game/Entities/Player/Player.h
+@@ -1059,6 +1059,14 @@ private:
+     bool _isPvP;
+ };
+ 
++// challenge script by L30m4nc3r
++enum CustomSkirmishStatus {
++    SKIRMISH_NONE       = 0,
++    SKIRMISH_PREPEAR,
++    SKIRMISH_JOINED
++};
++// challenge script by L30m4nc3r
++
+ class Player : public Unit, public GridObject<Player>
+ {
+     friend class WorldSession;
+@@ -1152,7 +1160,10 @@ class Player : public Unit, public GridObject<Player>
+         void GiveLevel(uint8 level);
+ 
+         void InitStatsForLevel(bool reapplyMods = false);
+-
++        // challenge script by L30m4nc3r
++        CustomSkirmishStatus getSkirmishStatus(ArenaType type) { return skirmishStatus[type]; }
++        void setSkirmishStatus(ArenaType type, CustomSkirmishStatus status) { skirmishStatus[type] = status; }
++        // challenge script by L30m4nc3r
+         // .cheat command related
+         bool GetCommandStatus(uint32 command) const { return _activeCheats & command; }
+         void SetCommandStatusOn(uint32 command) { _activeCheats |= command; }
+@@ -2610,6 +2621,11 @@ class Player : public Unit, public GridObject<Player>
+         bool m_bCanDelayTeleport;
+         bool m_bHasDelayedTeleport;
+ 
++        // challenge script by L30m4nc3r
++        // Specific skirmish data
++        CustomSkirmishStatus skirmishStatus[ARENA_TYPE_5v5 + 1];
++        // challenge script by L30m4nc3r
++
+         // Temporary removed pet cache
+         uint32 m_temporaryUnsummonedPetNumber;
+         uint32 m_oldpetspell;
+diff --git a/src/server/game/Handlers/BattleGroundHandler.cpp b/src/server/game/Handlers/BattleGroundHandler.cpp
+index f2ece85..af1903e 100755
+--- a/src/server/game/Handlers/BattleGroundHandler.cpp
++++ b/src/server/game/Handlers/BattleGroundHandler.cpp
+@@ -599,13 +599,6 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recvData)
+     if (_player->InBattleground())
+         return;
+ 
+-    Creature* unit = GetPlayer()->GetMap()->GetCreature(guid);
+-    if (!unit)
+-        return;
+-
+-    if (!unit->IsBattleMaster())                             // it's not battle master
+-        return;
+-
+     uint8 arenatype = 0;
+     uint32 arenaRating = 0;
+     uint32 matchmakerRating = 0;
+@@ -626,6 +619,17 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recvData)
+             return;
+     }
+ 
++    // challenge script by L30m4nc3r
++    if (_player->getSkirmishStatus((ArenaType)arenatype) != SKIRMISH_PREPEAR) {
++        Creature* unit = GetPlayer()->GetMap()->GetCreature(guid);
++        if (!unit)
++            return;
++
++        if (!unit->IsBattleMaster())                             // it's not battle master
++            return;
++    }
++    // challenge script by L30m4nc3r
++
+     //check existance
+     Battleground* bg = sBattlegroundMgr->GetBattlegroundTemplate(BATTLEGROUND_AA);
+     if (!bg)
+@@ -748,6 +752,12 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recvData)
+         SendPacket(&data);
+         TC_LOG_DEBUG(LOG_FILTER_BATTLEGROUND, "Battleground: player joined queue for arena, skirmish, bg queue type %u bg type %u: GUID %u, NAME %s", bgQueueTypeId, bgTypeId, _player->GetGUIDLow(), _player->GetName().c_str());
+     }
++
++    // challenge script by L30m4nc3r
++    if (_player->getSkirmishStatus((ArenaType)arenatype) == SKIRMISH_PREPEAR)
++        _player->setSkirmishStatus((ArenaType)arenatype, SKIRMISH_JOINED);
++    // challenge script by L30m4nc3r
++
+     sBattlegroundMgr->ScheduleQueueUpdate(matchmakerRating, arenatype, bgQueueTypeId, bgTypeId, bracketEntry->GetBracketId());
+ }
+ 
+diff --git a/src/server/game/Scripting/ScriptLoader.cpp b/src/server/game/Scripting/ScriptLoader.cpp
+index ad31bb5..d0ea8a2 100755
+--- a/src/server/game/Scripting/ScriptLoader.cpp
++++ b/src/server/game/Scripting/ScriptLoader.cpp
+@@ -36,6 +36,7 @@ void AddSC_vitality_pvp_island();
+ void AddSC_CPWS_Transmogrification();
+ void AddSC_System_Censure();
+ void AddSC_solo_queue_script();
++void AddSC_skirmish_commandscript(); // challenge script by L30m4nc3r
+ 
+ // spells
+ void AddSC_deathknight_spell_scripts();
+@@ -1359,6 +1360,6 @@ void AddCustomScripts()
+ 	AddSC_CPWS_Transmogrification();
+     AddSC_System_Censure();
+     AddSC_solo_queue_script();
+-	
++    AddSC_skirmish_commandscript(); // challenge script by L30m4nc3r
+ #endif
+ }
+diff --git a/src/server/scripts/Custom/CMakeLists.txt b/src/server/scripts/Custom/CMakeLists.txt
+index e62b736..c558932 100755
+--- a/src/server/scripts/Custom/CMakeLists.txt
++++ b/src/server/scripts/Custom/CMakeLists.txt
+@@ -23,6 +23,7 @@ set(scripts_STAT_SRCS
+   Custom/ArenaSpectate.cpp
+   Custom/ChangeToken.cpp
+   Custom/PvPIsleScript.cpp
++  Custom/custom_challenge_command.cpp
+ )
+ 
+ message("  -> Prepared: Custom")
+diff --git a/src/server/scripts/Custom/custom_challenge_command.cpp b/src/server/scripts/Custom/custom_challenge_command.cpp
+new file mode 100644
+index 0000000..202091b
+--- /dev/null
++++ b/src/server/scripts/Custom/custom_challenge_command.cpp
+@@ -0,0 +1,165 @@
++/* ScriptData
++Name: Challenge Arena
++%Complete: 100
++Comment: Script for events: challenge arena 2v2 3v3 5v5.
++Category: Custom Script
++Author: L30m4nc3r
++EndScriptData */
++
++#include "ScriptPCH.h"
++#include "Group.h"
++
++class skirmish_commandscript : public CommandScript
++{
++public:
++    skirmish_commandscript() : CommandScript("skirmish_commandscript") { }
++
++    ChatCommand* GetCommands() const
++    {
++        static ChatCommand skirmishCommandTable[] =
++        {
++            { "2x2",            SEC_MODERATOR,      false, &HandleSkirmish2x2Command,       "", NULL },
++            { "3x3",            SEC_MODERATOR,      false, &HandleSkirmish3x3Command,       "", NULL },
++            { "5x5",            SEC_MODERATOR,      false, &HandleSkirmish5x5Command,       "", NULL },
++            { NULL,             0,                  false, NULL,                            "", NULL }
++        };
++        static ChatCommand commandTable[] =
++        {
++            { "challenge",       SEC_MODERATOR,      false, NULL,                     "", skirmishCommandTable },
++            { NULL,             0,                  false, NULL,                     "",                 NULL }
++        };
++        return commandTable;
++    }
++
++    static bool CreateSkirmish(ChatHandler* handler, char* args, uint8 type)
++    {
++        char* pParam1 = strtok(args, " ");
++        if (!pParam1)
++            return false;
++
++        char* pParam2 = strtok(NULL, " ");
++        if (!pParam2)
++            return false;
++
++        Player *player1, *player2;
++        if (!handler->extractPlayerTarget(pParam1, &player1))
++            return false;
++
++        if (!handler->extractPlayerTarget(pParam2, &player2))
++            return false;
++
++        Group *gr1 = player1->GetGroup();
++        Group *gr2 = player2->GetGroup();
++
++        if (!gr1)
++        {
++            handler->PSendSysMessage("First player haven`t group.");
++            handler->SetSentErrorMessage(true);
++            return false;
++        }
++
++        if (!gr2)
++        {
++            handler->PSendSysMessage("Second player haven`t group.");
++            handler->SetSentErrorMessage(true);
++            return false;
++        }
++
++        if (!gr1->IsLeader(player1->GetGUID()))
++        {
++            handler->PSendSysMessage("First player isn`t leader.");
++            handler->SetSentErrorMessage(true);
++            return false;
++        }
++
++        if (!gr2->IsLeader(player2->GetGUID()))
++        {
++            handler->PSendSysMessage("Second player isn`t leader.");
++            handler->SetSentErrorMessage(true);
++            return false;
++        }
++
++        WorldPacket data1(CMSG_BATTLEMASTER_JOIN_ARENA, 8+1+1+1);
++        data1 << uint64(0);
++        data1 << uint8(type);
++        data1 << uint8(1);
++        data1 << uint8(0);
++
++        WorldPacket data2(CMSG_BATTLEMASTER_JOIN_ARENA, 8+1+1+1);
++        data2 << uint64(0);
++        data2 << uint8(type);
++        data2 << uint8(1);
++        data2 << uint8(0);
++
++        ArenaType aType;
++
++        switch (type)
++        {
++            case 0:
++                aType = ARENA_TYPE_2v2;
++                break;
++            case 1:
++                aType = ARENA_TYPE_3v3;
++                break;
++            case 2:
++                aType = ARENA_TYPE_5v5;
++                break;
++            default:
++                //sLog->outError("Unknown arena slot %u at CreateSkirmish", type);
++                return false;
++        }
++
++        player1->setSkirmishStatus(aType, SKIRMISH_PREPEAR);
++        player2->setSkirmishStatus(aType, SKIRMISH_PREPEAR);
++        player1->GetSession()->HandleBattlemasterJoinArena(data1);
++        player2->GetSession()->HandleBattlemasterJoinArena(data2);
++
++        if (player1->getSkirmishStatus(aType) != SKIRMISH_JOINED)
++        {
++            player1->setSkirmishStatus(aType, SKIRMISH_NONE);
++            handler->PSendSysMessage("There are some problems when try to join first team.");
++            handler->SetSentErrorMessage(true);
++            return false;
++        }
++
++        if (player2->getSkirmishStatus(aType) != SKIRMISH_JOINED)
++        {
++            player2->setSkirmishStatus(aType, SKIRMISH_NONE);
++            handler->PSendSysMessage("There are some problems when try to join second team.");
++            handler->SetSentErrorMessage(true);
++            return false;
++        }
++
++        return true;
++    }
++
++    static bool HandleSkirmish2x2Command(ChatHandler* handler, char const* args)
++    {
++        if (!*args)
++            return false;
++
++        return CreateSkirmish(handler, (char*)args, 0);
++    }
++
++    static bool HandleSkirmish3x3Command(ChatHandler* handler, char const* args)
++    {
++        if (!*args)
++            return false;
++
++        return CreateSkirmish(handler, (char*)args, 1);
++    }
++
++    static bool HandleSkirmish5x5Command(ChatHandler* handler, char const* args)
++    {
++        if (!*args)
++            return false;
++
++        return CreateSkirmish(handler, (char*)args, 2);
++    }
++
++};
++
++void AddSC_skirmish_commandscript()
++{
++    new skirmish_commandscript();
++}
+\ No newline at end of file
+-- 
+1.8.5.2

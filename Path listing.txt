@@ -1,0 +1,16 @@
+Patches:
+* PVP Ranks
+* Passive Anticheat with AutoBan.
+* Event (New currency with 2 vendors)
+* Rapid Change (Fast Emblems exchange)
+* Rings ICC (Exchange ICC Ring)
+* NPC Morph
+* Weekend Double XP Bonus Event
+* Transmogrification Patch v5.1 by Rochet2.
+* Chat log and lexics Cutter.
+* Wow Armory patch https://github.com/Shadez/wowarmory
+* Quest Completer by/from TrueWOW
+
+Other:
+* Additional Warden checks.
+* Other Bug fixes, listing in commits

@@ -1,0 +1,89 @@
+From 3dbc51990a62ae291ea357cd0a1bfdcba345f6c4 Mon Sep 17 00:00:00 2001
+From: SymbolixDEV <shabi_bjk@abv.bg>
+Date: Sun, 23 Feb 2014 18:37:43 +0200
+Subject: [PATCH] AuthServer DDoS
+
+---
+ src/server/authserver/Server/AuthSocket.cpp   | 11 +++++++++++
+ src/server/game/Handlers/CharacterHandler.cpp |  2 ++
+ src/server/game/World/World.cpp               |  6 ++++++
+ src/server/game/World/World.h                 | 12 ++++++++++++
+ 4 files changed, 31 insertions(+)
+
+diff --git a/src/server/authserver/Server/AuthSocket.cpp b/src/server/authserver/Server/AuthSocket.cpp
+index 67d3975..84ffe81 100644
+--- a/src/server/authserver/Server/AuthSocket.cpp
++++ b/src/server/authserver/Server/AuthSocket.cpp
+@@ -241,6 +241,17 @@ void AuthSocket::OnRead()
+             }
+         }
+ 
++		        if (_cmd == AUTH_LOGON_CHALLENGE)
++        {
++            ++challengesInARow;
++            if (challengesInARow == MAX_AUTH_LOGON_CHALLENGES_IN_A_ROW)
++            {
++                TC_LOG_WARN(LOG_FILTER_AUTHSERVER, "Got %u AUTH_LOGON_CHALLENGE in a row from '%s', possible ongoing DoS", challengesInARow, socket().getRemoteAddress().c_str());
++                socket().shutdown();
++                return;
++            }
++        }
++		
+         size_t i;
+ 
+         // Circle through known commands and call the correct command handler
+diff --git a/src/server/game/Handlers/CharacterHandler.cpp b/src/server/game/Handlers/CharacterHandler.cpp
+index 2639482..1a89d7b 100644
+--- a/src/server/game/Handlers/CharacterHandler.cpp
++++ b/src/server/game/Handlers/CharacterHandler.cpp
+@@ -245,6 +245,8 @@ void WorldSession::HandleCharEnumOpcode(WorldPacket & /*recvData*/)
+ {
+     AntiDOS.AllowOpcode(CMSG_CHAR_ENUM, false);
+ 
++		if (sWorld->IncreaseAndCheckFlooding(GetRemoteAddress()))
++           return;
+     // remove expired bans
+     PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_EXPIRED_BANS);
+     CharacterDatabase.Execute(stmt);
+diff --git a/src/server/game/World/World.cpp b/src/server/game/World/World.cpp
+index ec94ceb..870c94e 100644
+--- a/src/server/game/World/World.cpp
++++ b/src/server/game/World/World.cpp
+@@ -1980,6 +1980,12 @@ void World::LoadAutobroadcasts()
+ /// Update the World !
+ void World::Update(uint32 diff)
+ {
++	m_GlobalAntiFloodTimer += diff;
++	if (m_GlobalAntiFloodTimer > 5*IN_MILLISECONDS)
++	{
++		m_GlobalAntiFloodTimer = 0;
++		m_GlobalAntiFloodStorage.clear();
++	}
+     m_updateTime = diff;
+ 
+     if (m_int_configs[CONFIG_INTERVAL_LOG_UPDATE] && diff > m_int_configs[CONFIG_MIN_LOG_UPDATE])
+diff --git a/src/server/game/World/World.h b/src/server/game/World/World.h
+index 5a912ae..f891eb6 100644
+--- a/src/server/game/World/World.h
++++ b/src/server/game/World/World.h
+@@ -572,6 +572,18 @@ class World
+         World();
+         ~World();
+ 
++			std::map<std::string, uint32> m_GlobalAntiFloodStorage;
++        uint32 m_GlobalAntiFloodTimer;
++ 
++        inline bool IncreaseAndCheckFlooding(std::string ipaddress)
++        {
++            m_GlobalAntiFloodStorage[ipaddress] += 1;
++            if (m_GlobalAntiFloodStorage[ipaddress] > 15)
++                return true;
++ 
++			return false;
++        }
++		
+         WorldSession* FindSession(uint32 id) const;
+         void AddSession(WorldSession* s);
+         void SendAutoBroadcast();
+-- 
+1.8.5.2
