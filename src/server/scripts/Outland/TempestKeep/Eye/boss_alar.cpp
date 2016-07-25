@@ -435,7 +435,7 @@ class boss_alar : public CreatureScript
                         Unit* target = NULL;
                         target = me->SelectNearestTargetInAttackDistance(5);
                         if (target)
-                            AttackStart(target);
+                            me->AI()->AttackStart(target);
                         else
                         {
                             DoCast(me, SPELL_FLAME_BUFFET, true);
@@ -484,7 +484,7 @@ class npc_ember_of_alar : public CreatureScript
                 me->setDeathState(JUST_DIED);
             }
 
-            void DamageTaken(Unit* killer, uint32& damage) OVERRIDE
+            void DamageTaken(Unit* killer, uint32 &damage) OVERRIDE
             {
                 if (damage >= me->GetHealth() && killer != me && !toDie)
                 {
@@ -492,7 +492,7 @@ class npc_ember_of_alar : public CreatureScript
                     DoCast(me, SPELL_EMBER_BLAST, true);
                     me->SetDisplayId(11686);
                     me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                    if (instance->GetData(DATA_ALAREVENT) == 2)
+                    if (instance && instance->GetData(DATA_ALAREVENT) == 2)
                     {
                         if (Unit* Alar = Unit::GetUnit(*me, instance->GetData64(DATA_ALAR)))
                         {

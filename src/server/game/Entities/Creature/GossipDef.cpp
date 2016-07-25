@@ -28,7 +28,6 @@ GossipMenu::GossipMenu()
 {
     _menuId = 0;
     _locale = DEFAULT_LOCALE;
-    _senderGUID = 0;
 }
 
 GossipMenu::~GossipMenu()
@@ -167,10 +166,8 @@ void PlayerMenu::ClearMenus()
     _questMenu.ClearMenu();
 }
 
-void PlayerMenu::SendGossipMenu(uint32 titleTextId, uint64 objectGUID)
+void PlayerMenu::SendGossipMenu(uint32 titleTextId, uint64 objectGUID) const
 {
-    _gossipMenu.SetSenderGUID(objectGUID);
-
     WorldPacket data(SMSG_GOSSIP_MESSAGE, 100);         // guess size
     data << uint64(objectGUID);
     data << uint32(_gossipMenu.GetMenuId());            // new 2.4.0
@@ -225,10 +222,8 @@ void PlayerMenu::SendGossipMenu(uint32 titleTextId, uint64 objectGUID)
     _session->SendPacket(&data);
 }
 
-void PlayerMenu::SendCloseGossip()
+void PlayerMenu::SendCloseGossip() const
 {
-    _gossipMenu.SetSenderGUID(0);
-
     WorldPacket data(SMSG_GOSSIP_COMPLETE, 0);
     _session->SendPacket(&data);
 }
@@ -435,7 +430,7 @@ void PlayerMenu::SendQuestGiverQuestDetails(Quest const* quest, uint64 npcGUID, 
         }
 
         data << uint32(quest->GetRewOrReqMoney());
-        data << uint32(quest->XPValue(_session->GetPlayer()) * sWorld->getRate(RATE_XP_QUEST) * (IsEventActive(sWorld->getIntConfig(CONFIG_RATE_XP_WEEKEND_EVID)) ? sWorld->getRate(RATE_XP_WEEKEND) : 1.0f));
+        data << uint32(quest->XPValue(_session->GetPlayer()) * sWorld->getRate(RATE_XP_QUEST));
     }
 
     // rewarded honor points. Multiply with 10 to satisfy client
@@ -673,7 +668,7 @@ void PlayerMenu::SendQuestGiverOfferReward(Quest const* quest, uint64 npcGUID, b
     }
 
     data << uint32(quest->GetRewOrReqMoney());
-    data << uint32(quest->XPValue(_session->GetPlayer()) * sWorld->getRate(RATE_XP_QUEST) * (IsEventActive(sWorld->getIntConfig(CONFIG_RATE_XP_WEEKEND_EVID)) ? sWorld->getRate(RATE_XP_WEEKEND) : 1.0f));
+    data << uint32(quest->XPValue(_session->GetPlayer()) * sWorld->getRate(RATE_XP_QUEST));
 
     // rewarded honor points. Multiply with 10 to satisfy client
     data << uint32(10 * quest->CalculateHonorGain(_session->GetPlayer()->GetQuestLevel(quest)));

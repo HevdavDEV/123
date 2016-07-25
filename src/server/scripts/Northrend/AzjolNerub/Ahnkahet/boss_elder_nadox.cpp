@@ -63,7 +63,7 @@ class boss_elder_nadox : public CreatureScript
             void Reset() OVERRIDE
             {
                 _Reset();
-                GuardianSpawned = false;
+                AmountHealthModifier = 1;
                 GuardianDied = false;
             }
 
@@ -145,11 +145,11 @@ class boss_elder_nadox : public CreatureScript
                     }
                 }
 
-                if (me->HealthBelowPct(50) && !GuardianSpawned)
+                if (me->HealthBelowPct(100 - AmountHealthModifier * 25))
                 {
                     Talk(EMOTE_HATCHES, me);
                     DoCast(me, SPELL_SUMMON_SWARM_GUARD);
-                    GuardianSpawned = true;
+                    ++AmountHealthModifier;
                 }
 
                 DoMeleeAttackIfReady();
@@ -157,7 +157,7 @@ class boss_elder_nadox : public CreatureScript
 
         private:
             bool GuardianDied;
-            bool GuardianSpawned;
+            uint8 AmountHealthModifier;
         };
 
         CreatureAI* GetAI(Creature* creature) const OVERRIDE

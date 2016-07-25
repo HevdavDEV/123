@@ -232,12 +232,13 @@ class DatabaseWorkerPool
 
             ResultSet* result = conn->Query(sql);
             conn->Unlock();
-            if (!result || !result->GetRowCount() || !result->NextRow())
+            if (!result || !result->GetRowCount())
             {
                 delete result;
                 return QueryResult(NULL);
             }
 
+            result->NextRow();
             return QueryResult(result);
         }
 

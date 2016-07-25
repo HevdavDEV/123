@@ -176,7 +176,7 @@ public:
 
         void DoIntro()
         {
-            Creature* Madrigosa = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_MADRIGOSA));
+            Creature* Madrigosa = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(DATA_MADRIGOSA) : 0);
             if (!Madrigosa)
                 return;
 

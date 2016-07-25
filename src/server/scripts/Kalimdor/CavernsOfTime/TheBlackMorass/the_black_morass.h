@@ -64,3 +64,4 @@ enum CreatureIds
 };
 
 #endif
+

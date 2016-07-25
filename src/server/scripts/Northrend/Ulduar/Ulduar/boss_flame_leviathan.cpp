@@ -589,19 +589,17 @@ class boss_flame_leviathan_seat : public CreatureScript
                     else if (Creature* leviathan = me->GetVehicleCreatureBase())
                         leviathan->AI()->Talk(SAY_PLAYER_RIDING);
 
-                    if (Unit* turretPassenger = me->GetVehicleKit()->GetPassenger(SEAT_TURRET))
-                        if (Creature* turret = turretPassenger->ToCreature())
-                        {
-                            turret->setFaction(me->GetVehicleBase()->getFaction());
-                            turret->SetUInt32Value(UNIT_FIELD_FLAGS, 0); // unselectable
-                            turret->AI()->AttackStart(who);
-                        }
-                    if (Unit* devicePassenger = me->GetVehicleKit()->GetPassenger(SEAT_DEVICE))
-                        if (Creature* device = devicePassenger->ToCreature())
-                        {
-                            device->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
-                            device->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        }
+                    if (Creature* turret = me->GetVehicleKit()->GetPassenger(SEAT_TURRET)->ToCreature())
+                    {
+                        turret->setFaction(me->GetVehicleBase()->getFaction());
+                        turret->SetUInt32Value(UNIT_FIELD_FLAGS, 0); // unselectable
+                        turret->AI()->AttackStart(who);
+                    }
+                    if (Creature* device = me->GetVehicleKit()->GetPassenger(SEAT_DEVICE)->ToCreature())
+                    {
+                        device->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+                        device->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    }
 
                     me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 }
@@ -1194,7 +1192,7 @@ class npc_lorekeeper : public CreatureScript
         bool OnGossipHello(Player* player, Creature* creature) OVERRIDE
         {
             InstanceScript* instance = creature->GetInstanceScript();
-            if (instance && instance->GetData(BOSS_LEVIATHAN) != DONE && player)
+            if (instance && instance->GetData(BOSS_LEVIATHAN) !=DONE && player)
             {
                 player->PrepareGossipMenu(creature);
 
@@ -1287,7 +1285,8 @@ class go_ulduar_tower : public GameObjectScript
                     break;
             }
 
-            if (Creature* trigger = go->FindNearestCreature(NPC_ULDUAR_GAUNTLET_GENERATOR, 15.0f, true))
+            Creature* trigger = go->FindNearestCreature(NPC_ULDUAR_GAUNTLET_GENERATOR, 15.0f, true);
+            if (trigger)
                 trigger->DisappearAndDie();
         }
 };

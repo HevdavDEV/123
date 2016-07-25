@@ -1183,9 +1183,8 @@ public:
             CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
             if (titleInfo)
             {
-                /// @todo: implement female support
                 int locale = handler->GetSessionDbcLocale();
-                std::string name = titleInfo->nameMale[locale];
+                std::string name = titleInfo->name[locale];
                 if (name.empty())
                     continue;
 
@@ -1197,7 +1196,7 @@ public:
                         if (locale == handler->GetSessionDbcLocale())
                             continue;
 
-                        name = titleInfo->nameMale[locale];
+                        name = titleInfo->name[locale];
                         if (name.empty())
                             continue;
 

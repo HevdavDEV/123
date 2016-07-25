@@ -898,9 +898,6 @@ public:
     {
         eye_tentacleAI(Creature* creature) : ScriptedAI(creature)
         {
-            MindflayTimer = 500;
-            KillSelfTimer = 35000;
-
             Portal = 0;
             if (Creature* pPortal = me->SummonCreature(NPC_SMALL_PORTAL, *me, TEMPSUMMON_CORPSE_DESPAWN))
             {
@@ -977,10 +974,6 @@ public:
     {
         claw_tentacleAI(Creature* creature) : ScriptedAI(creature)
         {
-            GroundRuptureTimer = 500;
-            HamstringTimer = 2000;
-            EvadeTimer = 5000;
-
             SetCombatMovement(false);
 
             Portal = 0;
@@ -1092,11 +1085,6 @@ public:
     {
         giant_claw_tentacleAI(Creature* creature) : ScriptedAI(creature)
         {
-            GroundRuptureTimer = 500;
-            HamstringTimer = 2000;
-            ThrashTimer = 5000;
-            EvadeTimer = 5000;
-
             SetCombatMovement(false);
 
             Portal = 0;
@@ -1217,8 +1205,6 @@ public:
     {
         giant_eye_tentacleAI(Creature* creature) : ScriptedAI(creature)
         {
-            BeamTimer = 500;
-
             SetCombatMovement(false);
 
             Portal = 0;

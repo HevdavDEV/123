@@ -294,10 +294,9 @@ class npc_snobold_vassal : public CreatureScript
         {
             npc_snobold_vassalAI(Creature* creature) : ScriptedAI(creature)
             {
-                _targetGUID = 0;
-                _targetDied = false;
                 _instance = creature->GetInstanceScript();
-                _instance->SetData(DATA_SNOBOLD_COUNT, INCREASE);
+                if (_instance)
+                    _instance->SetData(DATA_SNOBOLD_COUNT, INCREASE);
             }
 
             void Reset() OVERRIDE
@@ -351,7 +350,8 @@ class npc_snobold_vassal : public CreatureScript
                 if (Unit* target = ObjectAccessor::GetPlayer(*me, _targetGUID))
                     if (target->IsAlive())
                         target->RemoveAurasDueToSpell(SPELL_SNOBOLLED);
-                _instance->SetData(DATA_SNOBOLD_COUNT, DECREASE);
+                if (_instance)
+                    _instance->SetData(DATA_SNOBOLD_COUNT, DECREASE);
             }
 
             void DoAction(int32 action) OVERRIDE
@@ -378,27 +378,30 @@ class npc_snobold_vassal : public CreatureScript
                 {
                     if (!target->IsAlive())
                     {
-                        Unit* gormok = ObjectAccessor::GetCreature(*me, _instance->GetData64(NPC_GORMOK));
-                        if (gormok && gormok->IsAlive())
+                        if (_instance)
                         {
-                            SetCombatMovement(false);
-                            _targetDied = true;
-
-                            // looping through Gormoks seats
-                            for (uint8 i = 0; i < MAX_SNOBOLDS; i++)
+                            Unit* gormok = ObjectAccessor::GetCreature(*me, _instance->GetData64(NPC_GORMOK));
+                            if (gormok && gormok->IsAlive())
                             {
-                                if (!gormok->GetVehicleKit()->GetPassenger(i))
+                                SetCombatMovement(false);
+                                _targetDied = true;
+
+                                // looping through Gormoks seats
+                                for (uint8 i = 0; i < MAX_SNOBOLDS; i++)
                                 {
-                                    me->EnterVehicle(gormok, i);
-                                    DoAction(ACTION_ENABLE_FIRE_BOMB);
-                                    break;
+                                    if (!gormok->GetVehicleKit()->GetPassenger(i))
+                                    {
+                                        me->EnterVehicle(gormok, i);
+                                        DoAction(ACTION_ENABLE_FIRE_BOMB);
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        else if (Unit* target2 = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
-                        {
-                            _targetGUID = target2->GetGUID();
-                            me->GetMotionMaster()->MoveJump(target2->GetPositionX(), target2->GetPositionY(), target2->GetPositionZ(), 15.0f, 15.0f);
+                            else if (Unit* target2 = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
+                            {
+                                _targetGUID = target2->GetGUID();
+                                me->GetMotionMaster()->MoveJump(target2->GetPositionX(), target2->GetPositionY(), target2->GetPositionZ(), 15.0f, 15.0f);
+                            }
                         }
                     }
                 }
@@ -525,7 +528,7 @@ struct boss_jormungarAI : public BossAI
     void JustReachedHome() OVERRIDE
     {
         // prevent losing 2 attempts at once on heroics
-        if (instance->GetData(TYPE_NORTHREND_BEASTS) != FAIL)
+        if (instance && instance->GetData(TYPE_NORTHREND_BEASTS) != FAIL)
             instance->SetData(TYPE_NORTHREND_BEASTS, FAIL);
 
         me->DespawnOrUnsummon();
@@ -549,7 +552,7 @@ struct boss_jormungarAI : public BossAI
         if (!UpdateVictim())
             return;
 
-        if (!Enraged && instance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_SPECIAL)
+        if (!Enraged && instance && instance->GetData(TYPE_NORTHREND_BEASTS) == SNAKES_SPECIAL)
         {
             me->RemoveAurasDueToSpell(SPELL_SUBMERGE_0);
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
@@ -586,7 +589,7 @@ struct boss_jormungarAI : public BossAI
                     events.ScheduleEvent(EVENT_SLIME_POOL, 30*IN_MILLISECONDS, 0, PHASE_MOBILE);
                     return;
                 case EVENT_SUMMON_ACIDMAW:
-                    if (Creature* acidmaw = me->SummonCreature(NPC_ACIDMAW, ToCCommonLoc[9].GetPositionX(), ToCCommonLoc[9].GetPositionY(), ToCCommonLoc[9].GetPositionZ(), 5, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 3*MINUTE*IN_MILLISECONDS))
+                    if (Creature* acidmaw = me->SummonCreature(NPC_ACIDMAW, ToCCommonLoc[9].GetPositionX(), ToCCommonLoc[9].GetPositionY(), ToCCommonLoc[9].GetPositionZ(), 5, TEMPSUMMON_MANUAL_DESPAWN))
                     {
                         acidmaw->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                         acidmaw->SetReactState(REACT_AGGRESSIVE);
@@ -611,15 +614,6 @@ struct boss_jormungarAI : public BossAI
             DoMeleeAttackIfReady();
         if (events.IsInPhase(PHASE_STATIONARY))
             DoSpellAttackIfReady(SpitSpell);
-    }
-
-    void SummonedCreatureDespawn(Creature* summoned) OVERRIDE
-    {
-        if (Enraged || !summoned->HasAura(SPELL_ENRAGE)) // We don't want this to happen if it's not a wipe
-            return;
-
-        if (summoned->GetEntry() == NPC_ACIDMAW && instance->GetBossState(BOSS_BEASTS) != FAIL) // Prevents double counter decrease in heroic
-            instance->SetBossState(BOSS_BEASTS, FAIL);
     }
 
     void Submerge()

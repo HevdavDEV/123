@@ -277,62 +277,6 @@ class spell_hallow_end_tricky_treat : public SpellScriptLoader
         }
 };
 
-enum PilgrimsBountyBuffFood
-{
-    // Pilgrims Bounty Buff Food
-    SPELL_WELL_FED_AP_TRIGGER       = 65414,
-    SPELL_WELL_FED_ZM_TRIGGER       = 65412,
-    SPELL_WELL_FED_HIT_TRIGGER      = 65416,
-    SPELL_WELL_FED_HASTE_TRIGGER    = 65410,
-    SPELL_WELL_FED_SPIRIT_TRIGGER   = 65415
-};
-
-class spell_pilgrims_bounty_buff_food : public SpellScriptLoader
-{
-    private:
-        uint32 const _triggeredSpellId;
-    public:
-        spell_pilgrims_bounty_buff_food(const char* name, uint32 triggeredSpellId) : SpellScriptLoader(name), _triggeredSpellId(triggeredSpellId) { }
-
-        class spell_pilgrims_bounty_buff_food_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_pilgrims_bounty_buff_food_AuraScript)
-        private:
-            uint32 const _triggeredSpellId;
-
-        public:
-            spell_pilgrims_bounty_buff_food_AuraScript(uint32 triggeredSpellId) : AuraScript(), _triggeredSpellId(triggeredSpellId) { }
-
-            bool Load() OVERRIDE
-            {
-                _handled = false;
-                return true;
-            }
-
-            void HandleTriggerSpell(AuraEffect const* /*aurEff*/)
-            {
-                PreventDefaultAction();
-                if (_handled)
-                    return;
-
-                _handled = true;
-                GetTarget()->CastSpell(GetTarget(), _triggeredSpellId, true);
-            }
-
-            void Register() OVERRIDE
-            {
-                OnEffectPeriodic += AuraEffectPeriodicFn(spell_pilgrims_bounty_buff_food_AuraScript::HandleTriggerSpell, EFFECT_2, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
-            }
-
-            bool _handled;
-        };
-
-        AuraScript* GetAuraScript() const OVERRIDE
-        {
-            return new spell_pilgrims_bounty_buff_food_AuraScript(_triggeredSpellId);
-        }
-};
-
 enum Mistletoe
 {
     SPELL_CREATE_MISTLETOE          = 26206,
@@ -444,99 +388,6 @@ class spell_winter_veil_px_238_winter_wondervolt : public SpellScriptLoader
         }
 };
 
-enum RibbonPoleData
-{
-    SPELL_HAS_FULL_MIDSUMMER_SET = 58933,
-    SPELL_BURNING_HOT_POLE_DANCE = 58934,
-    SPELL_RIBBON_DANCE = 29175,
-    SPELL_RIBBON_VISUAL1 = 29705,
-    SPELL_RIBBON_VISUAL2 = 29726,
-    SPELL_RIBBON_VISUAL3 = 29727,
-    SPELL_FIREWORKS = 46830,
-    SPELL_FIRE_PATCH = 46829,
-    GO_RIBBON_POLE = 181605,
-    NPC_RIBBON_POLE = 17066,
-};
-
-class spell_gen_ribbon_pole_dancer_check : public SpellScriptLoader
-{
-    public:
-        spell_gen_ribbon_pole_dancer_check() : SpellScriptLoader("spell_gen_ribbon_pole_dancer_check") { }
-
-        class spell_gen_ribbon_pole_dancer_check_AuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_gen_ribbon_pole_dancer_check_AuraScript);
-
-            bool Validate(SpellInfo const* /*spellInfo*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_HAS_FULL_MIDSUMMER_SET) ||
-                    !sSpellMgr->GetSpellInfo(SPELL_BURNING_HOT_POLE_DANCE) ||
-                    !sSpellMgr->GetSpellInfo(SPELL_RIBBON_DANCE))
-                    return false;
-                return true;
-            }
-
-            void PeriodicTick(AuraEffect const* /*aurEff*/)
-            {
-                Unit* target = GetTarget();
-
-                if (!target)
-                    return;
-
-                // check if aura needs to be removed
-                if (!target->FindNearestGameObject(GO_RIBBON_POLE, 10.0f) || !target->HasUnitState(UNIT_STATE_CASTING))
-                {
-                    target->InterruptNonMeleeSpells(false);
-                    target->RemoveAurasDueToSpell(GetId());
-                    if (target->HasAura(SPELL_RIBBON_VISUAL1))
-                        target->RemoveAura(SPELL_RIBBON_VISUAL1);
-                    if (target->HasAura(SPELL_RIBBON_VISUAL2))
-                        target->RemoveAura(SPELL_RIBBON_VISUAL2);
-                    if (target->HasAura(SPELL_RIBBON_VISUAL3))
-                        target->RemoveAura(SPELL_RIBBON_VISUAL3);
-                    return;
-                }
-
-                // set xp buff duration
-                if (Aura* aur = target->GetAura(SPELL_RIBBON_DANCE))
-                {
-                    aur->SetMaxDuration(aur->GetMaxDuration() >= 3600000 ? 3600000 : aur->GetMaxDuration() + 180000);
-                    aur->RefreshDuration();
-
-                    if (aur->GetMaxDuration() <= 1000000 && target->HasAura(SPELL_HAS_FULL_MIDSUMMER_SET) && !target->HasAura(SPELL_RIBBON_VISUAL1))
-                        target->CastSpell(target, SPELL_RIBBON_VISUAL1, true);
-
-                    if (aur->GetMaxDuration() > 1000000 && aur->GetMaxDuration() <= 2000000 && target->HasAura(SPELL_HAS_FULL_MIDSUMMER_SET) && !target->HasAura(SPELL_RIBBON_VISUAL2))
-                        target->CastSpell(target, SPELL_RIBBON_VISUAL2, true);
-
-                    if (aur->GetMaxDuration() > 3000000 && target->HasAura(SPELL_HAS_FULL_MIDSUMMER_SET) && !target->HasAura(SPELL_RIBBON_VISUAL3))
-                        target->CastSpell(target, SPELL_RIBBON_VISUAL3, true);
-
-                    // reward achievement criteria
-                    if (aur->GetMaxDuration() == 3600000 && target->HasAura(SPELL_HAS_FULL_MIDSUMMER_SET))
-                    {
-                        target->CastSpell(target, SPELL_BURNING_HOT_POLE_DANCE, true);
-                        if (Unit* dummy = target->FindNearestCreature(NPC_RIBBON_POLE, 20))
-                            dummy->CastSpell(dummy, SPELL_FIREWORKS, true);
-                        target->CastSpell(target, SPELL_FIRE_PATCH, true);
-                    }
-                }
-                else
-                    target->AddAura(SPELL_RIBBON_DANCE, target);
-            }
-
-            void Register()
-            {
-                OnEffectPeriodic += AuraEffectPeriodicFn(spell_gen_ribbon_pole_dancer_check_AuraScript::PeriodicTick, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_gen_ribbon_pole_dancer_check_AuraScript();
-        }
-};
-
 void AddSC_holiday_spell_scripts()
 {
     // Love is in the Air
@@ -545,15 +396,7 @@ void AddSC_holiday_spell_scripts()
     new spell_hallow_end_trick();
     new spell_hallow_end_trick_or_treat();
     new spell_hallow_end_tricky_treat();
-    // Pilgrims Bounty
-    new spell_pilgrims_bounty_buff_food("spell_gen_slow_roasted_turkey", SPELL_WELL_FED_AP_TRIGGER);
-    new spell_pilgrims_bounty_buff_food("spell_gen_cranberry_chutney", SPELL_WELL_FED_ZM_TRIGGER);
-    new spell_pilgrims_bounty_buff_food("spell_gen_spice_bread_stuffing", SPELL_WELL_FED_HIT_TRIGGER);
-    new spell_pilgrims_bounty_buff_food("spell_gen_pumpkin_pie", SPELL_WELL_FED_SPIRIT_TRIGGER);
-    new spell_pilgrims_bounty_buff_food("spell_gen_candied_sweet_potato", SPELL_WELL_FED_HASTE_TRIGGER);
     // Winter Veil
     new spell_winter_veil_mistletoe();
     new spell_winter_veil_px_238_winter_wondervolt();
-
-    new spell_gen_ribbon_pole_dancer_check();
 }

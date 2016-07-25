@@ -115,13 +115,14 @@ public:
         std::string uptime          = secsToTimeString(sWorld->GetUptime());
         uint32 updateTime           = sWorld->GetUpdateTime();
 
-        handler->PSendSysMessage("Repack Creators: SymbolixDEV & JunkyBulgaria");
-		handler->PSendSysMessage("Source is for sale skype: found3rr");
-		handler->PSendSysMessage("Developed: SymbolixDEV & JunkyBulgaria");
-		handler->PSendSysMessage("Last Update: 29.03.2014!");
+        handler->PSendSysMessage("Welcome to RageFire Instant 80 Realm!");
         handler->PSendSysMessage(LANG_CONNECTED_PLAYERS, playersNum, maxPlayersNum);
+        handler->PSendSysMessage(LANG_CONNECTED_USERS, activeClientsNum, maxActiveClientsNum, queuedClientsNum, maxQueuedClientsNum);
         handler->PSendSysMessage(LANG_UPTIME, uptime.c_str());
-		
+        handler->PSendSysMessage(LANG_UPDATE_DIFF, updateTime);
+		handler->PSendSysMessage("Developed: SymbolixDEV");
+		handler->PSendSysMessage("Last Update: 25.07.2016!");
+		handler->PSendSysMessage("Invite You friend's and enjoy on RageFire!");
         // Can't use sWorld->ShutdownMsg here in case of console command
         if (sWorld->IsShuttingDown())
             handler->PSendSysMessage(LANG_SHUTDOWN_TIMELEFT, secsToTimeString(sWorld->GetShutDownTimeLeft()).c_str());

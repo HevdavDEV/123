@@ -23,6 +23,7 @@
 #include "Opcodes.h"
 #include "UpdateData.h"
 #include "Player.h"
+#include "Pet.h"
 
 void WorldSession::HandleDuelAcceptedOpcode(WorldPacket& recvPacket)
 {
@@ -48,6 +49,80 @@ void WorldSession::HandleDuelAcceptedOpcode(WorldPacket& recvPacket)
     time_t now = time(NULL);
     player->duel->startTimer = now;
     plTarget->duel->startTimer = now;
+
+    // Reiniciar Cooldowns, vida y mana en una zona especifica.
+    if (player->GetAreaId() == 4570 || player->GetAreaId() == 14 || player->GetAreaId() == 12)
+    {
+        player->SetHealth(player->GetMaxHealth());
+        plTarget->SetHealth(plTarget->GetMaxHealth());
+        player->RemoveArenaSpellCooldowns(true);
+        plTarget->RemoveArenaSpellCooldowns(true);
+
+	    // Debuffs
+        player->RemoveAura(57723);
+        player->RemoveAura(57724);
+        player->RemoveAura(25771);
+        player->RemoveAura(41425);
+        player->RemoveAura(61987);
+		player->RemoveAura(66233);
+		player->RemoveAura(11196);
+		player->RemoveAura(47986);
+        plTarget->RemoveAura(57723);
+        plTarget->RemoveAura(57724);
+        plTarget->RemoveAura(25771);
+        plTarget->RemoveAura(41425);
+        plTarget->RemoveAura(61987);
+        plTarget->RemoveAura(66233);
+        plTarget->RemoveAura(11196);
+		plTarget->RemoveAura(47986);
+
+        if (player->getPowerType() == POWER_MANA)
+            player->SetPower(POWER_MANA, player->GetMaxPower(POWER_MANA));
+        if (plTarget->getPowerType() == POWER_MANA)
+            plTarget->SetPower(POWER_MANA, plTarget->GetMaxPower(POWER_MANA));
+
+    if (player->getPowerType() == POWER_RAGE)
+        player->SetPower(POWER_RAGE, 0);
+    if (plTarget->getPowerType() == POWER_RAGE)
+        plTarget->SetPower(POWER_RAGE, 0);
+    if (player->getPowerType() == POWER_RUNIC_POWER)
+        player->SetPower(POWER_RUNIC_POWER, 0);
+    if (plTarget->getPowerType() == POWER_RUNIC_POWER)
+        plTarget->SetPower(POWER_RUNIC_POWER, 0);
+
+        // Reset Pet Cooldown HP, Power, and Summon.
+            if (player->getClass() == CLASS_HUNTER)
+                player->CastSpell(player, 883, true);
+        Pet* plPet = player->GetPet();
+        if(plPet != NULL)
+        {
+            if (plPet->isDead())
+                player->CastSpell(player, 35182, true);
+				player->CastSpell(player, 982, true);
+				player->RemoveAura(35182);
+            plPet->SetHealth(plPet->GetMaxHealth());
+            plPet->SetPower(plPet->getPowerType(), plPet->GetMaxPower(plPet->getPowerType()));
+            plPet->RemoveArenaAuras();
+			plPet->m_CreatureSpellCooldowns.clear();
+			plPet->RemoveAura(55711);
+        }
+
+            if (plTarget->getClass() == CLASS_HUNTER)
+                plTarget->CastSpell(plTarget, 883, true);
+        Pet* plPetTarget = plTarget->GetPet();
+        if(plPetTarget != NULL)
+        {
+            if (plPetTarget->isDead())
+                plTarget->CastSpell(plTarget, 35182, true);
+				plTarget->CastSpell(plTarget, 982, true);
+				plTarget->RemoveAura(35182);
+            plPetTarget->SetHealth(plPetTarget->GetMaxHealth());
+            plPetTarget->SetPower(plPetTarget->getPowerType(), plPetTarget->GetMaxPower(plPetTarget->getPowerType()));
+            plPetTarget->RemoveArenaAuras();
+			plPetTarget->m_CreatureSpellCooldowns.clear();
+			plPetTarget->RemoveAura(55711);
+        }
+	}
 
     player->SendDuelCountdown(3000);
     plTarget->SendDuelCountdown(3000);

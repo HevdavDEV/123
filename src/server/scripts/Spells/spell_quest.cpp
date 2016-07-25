@@ -903,7 +903,7 @@ class spell_q12659_ahunaes_knife : public SpellScriptLoader
 enum StoppingTheSpread
 {
     NPC_VILLAGER_KILL_CREDIT                     = 18240,
-    SPELL_FLAMES                                 = 39199
+    SPELL_FLAMES                                 = 39199,
 };
 
 class spell_q9874_liquid_fire : public SpellScriptLoader
@@ -926,7 +926,7 @@ class spell_q9874_liquid_fire : public SpellScriptLoader
             {
                 Player* caster = GetCaster()->ToPlayer();
                 if (Creature* target = GetHitCreature())
-                    if (target && !target->HasAura(SPELL_FLAMES))
+                    if (target && target->HasAura(SPELL_FLAMES))
                     {
                         caster->KilledMonsterCredit(NPC_VILLAGER_KILL_CREDIT, 0);
                         target->CastSpell(target, SPELL_FLAMES, true);
@@ -1606,7 +1606,6 @@ class spell_q12527_zuldrak_rat : public SpellScriptLoader
         }
 };
 
-// 55368 - Summon Stefan
 class spell_q12661_q12669_q12676_q12677_q12713_summon_stefan : public SpellScriptLoader
 {
     public:
@@ -1616,16 +1615,19 @@ class spell_q12661_q12669_q12676_q12677_q12713_summon_stefan : public SpellScrip
         {
             PrepareSpellScript(spell_q12661_q12669_q12676_q12677_q12713_summon_stefan_SpellScript);
 
-            void SetDest(SpellDestination& dest)
+            void ChangeSummonPos(SpellEffIndex /*effIndex*/)
             {
                 // Adjust effect summon position
-                Position const offset = { 0.0f, 0.0f, 20.0f, 0.0f };
-                dest.RelocateOffset(offset);
+                WorldLocation summonPos = *GetExplTargetDest();
+                Position offset = { 0.0f, 0.0f, 20.0f, 0.0f };
+                summonPos.RelocateOffset(offset);
+                SetExplTargetDest(summonPos);
+                GetHitDest()->RelocateOffset(offset);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_q12661_q12669_q12676_q12677_q12713_summon_stefan_SpellScript::SetDest, EFFECT_0, TARGET_DEST_CASTER_BACK);
+                OnEffectHit += SpellEffectFn(spell_q12661_q12669_q12676_q12677_q12713_summon_stefan_SpellScript::ChangeSummonPos, EFFECT_0, SPELL_EFFECT_SUMMON);
             }
         };
 
@@ -1721,7 +1723,6 @@ class spell_q13291_q13292_q13239_q13261_frostbrood_skytalon_grab_decoy : public 
         }
 };
 
-// 59303 - Summon Frost Wyrm
 class spell_q13291_q13292_q13239_q13261_armored_decoy_summon_skytalon : public SpellScriptLoader
 {
     public:
@@ -1731,16 +1732,19 @@ class spell_q13291_q13292_q13239_q13261_armored_decoy_summon_skytalon : public S
         {
             PrepareSpellScript(spell_q13291_q13292_q13239_q13261_armored_decoy_summon_skytalon_SpellScript);
 
-            void SetDest(SpellDestination& dest)
+            void ChangeSummonPos(SpellEffIndex /*effIndex*/)
             {
                 // Adjust effect summon position
-                Position const offset = { 0.0f, 0.0f, 20.0f, 0.0f };
-                dest.RelocateOffset(offset);
+                WorldLocation summonPos = *GetExplTargetDest();
+                Position offset = { 0.0f, 0.0f, 20.0f, 0.0f };
+                summonPos.RelocateOffset(offset);
+                SetExplTargetDest(summonPos);
+                GetHitDest()->RelocateOffset(offset);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_q13291_q13292_q13239_q13261_armored_decoy_summon_skytalon_SpellScript::SetDest, EFFECT_0, TARGET_DEST_CASTER_BACK);
+                OnEffectHit += SpellEffectFn(spell_q13291_q13292_q13239_q13261_armored_decoy_summon_skytalon_SpellScript::ChangeSummonPos, EFFECT_0, SPELL_EFFECT_SUMMON);
             }
         };
 
@@ -1750,7 +1754,6 @@ class spell_q13291_q13292_q13239_q13261_armored_decoy_summon_skytalon : public S
         }
 };
 
-// 12601 - Second Chances: Summon Landgren's Soul Moveto Target Bunny
 class spell_q12847_summon_soul_moveto_bunny : public SpellScriptLoader
 {
     public:
@@ -1760,16 +1763,19 @@ class spell_q12847_summon_soul_moveto_bunny : public SpellScriptLoader
         {
             PrepareSpellScript(spell_q12847_summon_soul_moveto_bunny_SpellScript);
 
-            void SetDest(SpellDestination& dest)
+            void ChangeSummonPos(SpellEffIndex /*effIndex*/)
             {
                 // Adjust effect summon position
-                Position const offset = { 0.0f, 0.0f, 2.5f, 0.0f };
-                dest.RelocateOffset(offset);
+                WorldLocation summonPos = *GetExplTargetDest();
+                Position offset = { 0.0f, 0.0f, 2.5f, 0.0f };
+                summonPos.RelocateOffset(offset);
+                SetExplTargetDest(summonPos);
+                GetHitDest()->RelocateOffset(offset);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_q12847_summon_soul_moveto_bunny_SpellScript::SetDest, EFFECT_0, TARGET_DEST_CASTER);
+                OnEffectHit += SpellEffectFn(spell_q12847_summon_soul_moveto_bunny_SpellScript::ChangeSummonPos, EFFECT_0, SPELL_EFFECT_SUMMON);
             }
         };
 
@@ -2006,19 +2012,19 @@ class spell_q12308_escape_from_silverbrook_summon_worgen : public SpellScriptLoa
         {
             PrepareSpellScript(spell_q12308_escape_from_silverbrook_summon_worgen_SpellScript);
 
-            void ModDest(SpellDestination& dest)
+            void ModDest(SpellEffIndex effIndex)
             {
-                float dist = GetSpellInfo()->Effects[EFFECT_0].CalcRadius(GetCaster());
-                float angle = frand(0.75f, 1.25f) * M_PI;
+                float dist = GetSpellInfo()->Effects[effIndex].CalcRadius(GetCaster());
+                float angle = (urand(0, 1) ? -1 : 1) * (frand(0.75f, 1.0f) * M_PI);
 
                 Position pos;
                 GetCaster()->GetNearPosition(pos, dist, angle);
-                dest.Relocate(pos);
+                GetHitDest()->Relocate(&pos);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_q12308_escape_from_silverbrook_summon_worgen_SpellScript::ModDest, EFFECT_0, TARGET_DEST_CASTER_SUMMON);
+                OnEffectHit += SpellEffectFn(spell_q12308_escape_from_silverbrook_summon_worgen_SpellScript::ModDest, EFFECT_0, SPELL_EFFECT_SUMMON);
             }
         };
 

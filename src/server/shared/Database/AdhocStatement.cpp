@@ -42,13 +42,13 @@ bool BasicStatementTask::Execute()
     if (m_has_result)
     {
         ResultSet* result = m_conn->Query(m_sql);
-        if (!result || !result->GetRowCount() || !result->NextRow())
+        if (!result || !result->GetRowCount())
         {
             delete result;
             m_result.set(QueryResult(NULL));
             return false;
         }
-
+        result->NextRow();
         m_result.set(QueryResult(result));
         return true;
     }

@@ -69,13 +69,13 @@ public:
             NovaTimer = 15000;
             IceboltTimer = 10000;
 
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_RAGEWINTERCHILLEVENT, NOT_STARTED);
         }
 
         void EnterCombat(Unit* /*who*/) OVERRIDE
         {
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_RAGEWINTERCHILLEVENT, IN_PROGRESS);
             Talk(SAY_ONAGGRO);
         }
@@ -98,7 +98,7 @@ public:
         void JustDied(Unit* killer) OVERRIDE
         {
             hyjal_trashAI::JustDied(killer);
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_RAGEWINTERCHILLEVENT, DONE);
             Talk(SAY_ONDEATH);
         }

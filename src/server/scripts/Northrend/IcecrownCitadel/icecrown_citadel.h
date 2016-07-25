@@ -68,7 +68,7 @@ enum TeleporterSpells
     DEATHBRINGER_S_RISE_TELEPORT    = 70858,
     UPPER_SPIRE_TELEPORT            = 70859,
     FROZEN_THRONE_TELEPORT          = 70860,
-    SINDRAGOSA_S_LAIR_TELEPORT      = 70861
+    SINDRAGOSA_S_LAIR_TELEPORT      = 70861,
 };
 
 enum DataTypes
@@ -76,7 +76,7 @@ enum DataTypes
     // Encounter States/Boss GUIDs
     DATA_LORD_MARROWGAR             = 0,
     DATA_LADY_DEATHWHISPER          = 1,
-    DATA_ICECROWN_GUNSHIP_BATTLE    = 2,
+    DATA_GUNSHIP_EVENT              = 2,
     DATA_DEATHBRINGER_SAURFANG      = 3,
     DATA_FESTERGUT                  = 4,
     DATA_ROTFACE                    = 5,
@@ -90,7 +90,6 @@ enum DataTypes
     DATA_SINDRAGOSA_GAUNTLET        = 13,
 
     // Additional data
-<<<<<<< HEAD
     DATA_SAURFANG_EVENT_NPC         = 14,
     DATA_BONED_ACHIEVEMENT          = 15,
     DATA_OOZE_DANCE_ACHIEVEMENT     = 16,
@@ -121,36 +120,6 @@ enum DataTypes
     DATA_FIRST_SQUAD_STATE          = 40,
     DATA_SECOND_SQUAD_STATE         = 41,
     DATA_SPIRE_FROSTWYRM_STATE      = 42,
-=======
-    DATA_SAURFANG_EVENT_NPC         = 13,
-    DATA_BONED_ACHIEVEMENT          = 14,
-    DATA_OOZE_DANCE_ACHIEVEMENT     = 15,
-    DATA_PUTRICIDE_TABLE            = 16,
-    DATA_NAUSEA_ACHIEVEMENT         = 17,
-    DATA_ORB_WHISPERER_ACHIEVEMENT  = 18,
-    DATA_PRINCE_KELESETH_GUID       = 19,
-    DATA_PRINCE_TALDARAM_GUID       = 20,
-    DATA_PRINCE_VALANAR_GUID        = 21,
-    DATA_BLOOD_PRINCES_CONTROL      = 22,
-    DATA_SINDRAGOSA_FROSTWYRMS      = 23,
-    DATA_SPINESTALKER               = 24,
-    DATA_RIMEFANG                   = 25,
-    DATA_COLDFLAME_JETS             = 26,
-    DATA_TEAM_IN_INSTANCE           = 27,
-    DATA_BLOOD_QUICKENING_STATE     = 28,
-    DATA_HEROIC_ATTEMPTS            = 29,
-    DATA_CROK_SCOURGEBANE           = 30,
-    DATA_CAPTAIN_ARNATH             = 31,
-    DATA_CAPTAIN_BRANDON            = 32,
-    DATA_CAPTAIN_GRONDEL            = 33,
-    DATA_CAPTAIN_RUPERT             = 34,
-    DATA_VALITHRIA_TRIGGER          = 35,
-    DATA_VALITHRIA_LICH_KING        = 36,
-    DATA_HIGHLORD_TIRION_FORDRING   = 37,
-    DATA_ARTHAS_PLATFORM            = 38,
-    DATA_TERENAS_MENETHIL           = 39,
-    DATA_ENEMY_GUNSHIP              = 40
->>>>>>> 818278a71e91613e07eba7444f1bb2b7afef23a0
 };
 
 enum CreaturesIds
@@ -186,7 +155,6 @@ enum CreaturesIds
     NPC_ALCHEMIST_ADRIANNA                      = 38501,
     NPC_ALRIN_THE_AGILE                         = 38551,
     NPC_INFILTRATOR_MINCHAR_BQ                  = 38558,
-    NPC_INFILTRATOR_MINCHAR_BQ_25               = 39123,
     NPC_MINCHAR_BEAM_STALKER                    = 38557,
     NPC_VALITHRIA_DREAMWALKER_QUEST             = 38589,
 
@@ -205,39 +173,10 @@ enum CreaturesIds
     NPC_REANIMATED_ADHERENT                     = 38010,
     NPC_VENGEFUL_SHADE                          = 38222,
 
-<<<<<<< HEAD
     // Ramparts
     NPC_SPIRE_FROSTWYRM                         = 37230,
     NPC_KORKRON_INVOKER                         = 37033,
     NPC_SKYBREAKER_SORCERER                     = 37026,
-=======
-    // Icecrown Gunship Battle
-    NPC_MARTYR_STALKER_IGB_SAURFANG             = 38569,
-    NPC_ALLIANCE_GUNSHIP_CANNON                 = 36838,
-    NPC_HORDE_GUNSHIP_CANNON                    = 36839,
-    NPC_SKYBREAKER_DECKHAND                     = 36970,
-    NPC_ORGRIMS_HAMMER_CREW                     = 36971,
-    NPC_IGB_HIGH_OVERLORD_SAURFANG              = 36939,
-    NPC_IGB_MURADIN_BRONZEBEARD                 = 36948,
-    NPC_THE_SKYBREAKER                          = 37540,
-    NPC_ORGRIMS_HAMMER                          = 37215,
-    NPC_GUNSHIP_HULL                            = 37547,
-    NPC_TELEPORT_PORTAL                         = 37227,
-    NPC_TELEPORT_EXIT                           = 37488,
-    NPC_SKYBREAKER_SORCERER                     = 37116,
-    NPC_SKYBREAKER_RIFLEMAN                     = 36969,
-    NPC_SKYBREAKER_MORTAR_SOLDIER               = 36978,
-    NPC_SKYBREAKER_MARINE                       = 36950,
-    NPC_SKYBREAKER_SERGEANT                     = 36961,
-    NPC_KOR_KRON_BATTLE_MAGE                    = 37117,
-    NPC_KOR_KRON_AXETHROWER                     = 36968,
-    NPC_KOR_KRON_ROCKETEER                      = 36982,
-    NPC_KOR_KRON_REAVER                         = 36957,
-    NPC_KOR_KRON_SERGEANT                       = 36960,
-    NPC_ZAFOD_BOOMBOX                           = 37184,
-    NPC_HIGH_CAPTAIN_JUSTIN_BARTLETT            = 37182,
-    NPC_SKY_REAVER_KORM_BLACKSCAR               = 37833,
->>>>>>> 818278a71e91613e07eba7444f1bb2b7afef23a0
 
     // Deathbringer Saurfang
     NPC_DEATHBRINGER_SAURFANG                   = 37813,
@@ -363,7 +302,7 @@ enum CreaturesIds
     NPC_FROSTWARDEN_SORCERESS                   = 37229,
 
     // Generic
-    NPC_INVISIBLE_STALKER                       = 30298
+    NPC_INVISIBLE_STALKER                       = 30298,
 };
 
 enum GameObjectsIds
@@ -383,7 +322,6 @@ enum GameObjectsIds
     GO_ORATORY_OF_THE_DAMNED_ENTRANCE       = 201563,
     GO_LADY_DEATHWHISPER_ELEVATOR           = 202220,
 
-<<<<<<< HEAD
     // Gunship Battle
     GO_CAPITAN_CHEST_A_10N                  = 201872,
     GO_CAPITAN_CHEST_A_10H                  = 201874,
@@ -393,23 +331,6 @@ enum GameObjectsIds
     GO_CAPITAN_CHEST_H_10H                  = 202180,
     GO_CAPITAN_CHEST_H_25N                  = 202178,
     GO_CAPITAN_CHEST_H_25H                  = 202179,
-=======
-    // Icecrown Gunship Battle - Horde raid
-    GO_ORGRIMS_HAMMER_H                     = 201812,
-    GO_THE_SKYBREAKER_H                     = 201811,
-    GO_GUNSHIP_ARMORY_H_10N                 = 202178,
-    GO_GUNSHIP_ARMORY_H_25N                 = 202180,
-    GO_GUNSHIP_ARMORY_H_10H                 = 202177,
-    GO_GUNSHIP_ARMORY_H_25H                 = 202179,
-
-    // Icecrown Gunship Battle - Alliance raid
-    GO_ORGRIMS_HAMMER_A                     = 201581,
-    GO_THE_SKYBREAKER_A                     = 201580,
-    GO_GUNSHIP_ARMORY_A_10N                 = 201873,
-    GO_GUNSHIP_ARMORY_A_25N                 = 201874,
-    GO_GUNSHIP_ARMORY_A_10H                 = 201872,
-    GO_GUNSHIP_ARMORY_A_25H                 = 201875,
->>>>>>> 818278a71e91613e07eba7444f1bb2b7afef23a0
 
     // Deathbringer Saurfang
     GO_SAURFANG_S_DOOR                      = 201825,
@@ -474,7 +395,7 @@ enum GameObjectsIds
     GO_DOODAD_ICECROWN_SNOWEDGEWARNING01    = 202190,
     GO_FROZEN_LAVAMAN                       = 202436,
     GO_LAVAMAN_PILLARS_CHAINED              = 202437,
-    GO_LAVAMAN_PILLARS_UNCHAINED            = 202438
+    GO_LAVAMAN_PILLARS_UNCHAINED            = 202438,
 };
 
 enum AchievementCriteriaIds
@@ -509,15 +430,11 @@ enum AchievementCriteriaIds
     CRITERIA_ONCE_BITTEN_TWICE_SHY_10N  = 12780,
     CRITERIA_ONCE_BITTEN_TWICE_SHY_25N  = 13012,
     CRITERIA_ONCE_BITTEN_TWICE_SHY_10V  = 13011,
-    CRITERIA_ONCE_BITTEN_TWICE_SHY_25V  = 13013
+    CRITERIA_ONCE_BITTEN_TWICE_SHY_25V  = 13013,
 };
 
 enum SharedActions
 {
-    // Icecrown Gunship Battle
-    ACTION_ENEMY_GUNSHIP_TALK   = -369390,
-    ACTION_EXIT_SHIP            = -369391,
-
     // Festergut
     ACTION_FESTERGUT_COMBAT     = -366260,
     ACTION_FESTERGUT_GAS        = -366261,
@@ -541,7 +458,7 @@ enum SharedActions
 
     // The Lich King
     ACTION_RESTORE_LIGHT        = -72262,
-    ACTION_FROSTMOURNE_INTRO    = -36823
+    ACTION_FROSTMOURNE_INTRO    = -36823,
 };
 
 enum WeekliesICC
@@ -555,7 +472,7 @@ enum WeekliesICC
     QUEST_BLOOD_QUICKENING_10               = 24874,
     QUEST_BLOOD_QUICKENING_25               = 24879,
     QUEST_RESPITE_FOR_A_TORNMENTED_SOUL_10  = 24872,
-    QUEST_RESPITE_FOR_A_TORNMENTED_SOUL_25  = 24880
+    QUEST_RESPITE_FOR_A_TORNMENTED_SOUL_25  = 24880,
 };
 
 enum WorldStatesICC
@@ -564,13 +481,12 @@ enum WorldStatesICC
     WORLDSTATE_EXECUTION_TIME       = 4904,
     WORLDSTATE_SHOW_ATTEMPTS        = 4940,
     WORLDSTATE_ATTEMPTS_REMAINING   = 4941,
-    WORLDSTATE_ATTEMPTS_MAX         = 4942
+    WORLDSTATE_ATTEMPTS_MAX         = 4942,
 };
 
 enum AreaIds
 {
-    AREA_ICECROWN_CITADEL   = 4812,
-    AREA_THE_FROZEN_THRONE  = 4859
+    AREA_THE_FROZEN_THRONE  = 4859,
 };
 
 class spell_trigger_spell_from_caster : public SpellScriptLoader

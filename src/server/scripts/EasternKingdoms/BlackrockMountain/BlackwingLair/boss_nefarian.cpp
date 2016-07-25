@@ -223,14 +223,16 @@ public:
 
         void SetData(uint32 type, uint32 data) OVERRIDE
         {
-            if ( type == 1 && data == 1)
+            if (instance && type == 1 && data == 1)
             {
                 me->StopMoving();
                 events.ScheduleEvent(EVENT_PATH_2, 9000);
             }
 
-            if (type == 1 && data == 2)
+            if (instance && type == 1 && data == 2)
+            {
                 events.ScheduleEvent(EVENT_SUCCESS_1, 5000);
+            }
         }
 
         void UpdateAI(uint32 diff) OVERRIDE
@@ -342,7 +344,7 @@ public:
                                         nefarian->setActive(true);
                                         nefarian->SetCanFly(true);
                                         nefarian->SetDisableGravity(true);
-                                        nefarian->CastSpell((Unit*)NULL, SPELL_SHADOWFLAME_INITIAL);
+                                        nefarian->AI()->DoCastAOE(SPELL_SHADOWFLAME_INITIAL);
                                         nefarian->GetMotionMaster()->MovePoint(1, NefarianLoc[1]);
                                     }
                                     events.CancelEvent(EVENT_MIND_CONTROL);

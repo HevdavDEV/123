@@ -147,17 +147,6 @@ public:
         bool polaritySwitch;
         uint32 uiAddsTimer;
 
-        void Reset()
-        {
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_STUNNED);
-            me->SetReactState(REACT_PASSIVE);
-            
-            if (Creature* Feugen = me->GetCreature(*me, instance->GetData64(DATA_FEUGEN)))
-                Feugen->Respawn();
-            if (Creature* Stalagg = me->GetCreature(*me, instance->GetData64(DATA_STALAGG)))
-                Stalagg->Respawn();
-        }
-
         void KilledUnit(Unit* /*victim*/) OVERRIDE
         {
             if (!(rand()%5))
@@ -336,8 +325,6 @@ public:
             if (Creature* pThaddius = me->GetCreature(*me, instance->GetData64(DATA_THADDIUS)))
                 if (pThaddius->AI())
                     pThaddius->AI()->DoAction(ACTION_STALAGG_DIED);
-
-            me->DespawnOrUnsummon();
         }
 
         void UpdateAI(uint32 uiDiff) OVERRIDE
@@ -428,8 +415,6 @@ public:
             if (Creature* pThaddius = me->GetCreature(*me, instance->GetData64(DATA_THADDIUS)))
                 if (pThaddius->AI())
                     pThaddius->AI()->DoAction(ACTION_FEUGEN_DIED);
-
-            me->DespawnOrUnsummon();
         }
 
         void UpdateAI(uint32 uiDiff) OVERRIDE
@@ -473,7 +458,7 @@ class spell_thaddius_pos_neg_charge : public SpellScriptLoader
 
             bool Load() OVERRIDE
             {
-                return GetOriginalCaster()->GetTypeId() == TYPEID_UNIT;
+                return GetCaster()->GetTypeId() == TYPEID_UNIT;
             }
 
             void HandleTargets(std::list<WorldObject*>& targets)
@@ -504,7 +489,7 @@ class spell_thaddius_pos_neg_charge : public SpellScriptLoader
                     return;
 
                 Unit* target = GetHitUnit();
-                Unit* caster = GetOriginalCaster();
+                Unit* caster = GetCaster();
 
                 if (target->HasAura(GetTriggeringSpell()->Id))
                     SetHitDamage(0);

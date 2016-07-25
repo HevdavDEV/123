@@ -72,15 +72,14 @@ public:
             AuraTimer = 5000;
             InfernoTimer = 45000;
 
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_ANETHERONEVENT, NOT_STARTED);
         }
 
         void EnterCombat(Unit* /*who*/) OVERRIDE
         {
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_ANETHERONEVENT, IN_PROGRESS);
-
             Talk(SAY_ONAGGRO);
         }
 
@@ -92,7 +91,7 @@ public:
 
         void WaypointReached(uint32 waypointId) OVERRIDE
         {
-            if (waypointId == 7)
+            if (waypointId == 7 && instance)
             {
                 Unit* target = Unit::GetUnit(*me, instance->GetData64(DATA_JAINAPROUDMOORE));
                 if (target && target->IsAlive())
@@ -103,7 +102,7 @@ public:
         void JustDied(Unit* killer) OVERRIDE
         {
             hyjal_trashAI::JustDied(killer);
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_ANETHERONEVENT, DONE);
             Talk(SAY_ONDEATH);
         }
@@ -185,8 +184,6 @@ public:
     {
         npc_towering_infernalAI(Creature* creature) : ScriptedAI(creature)
         {
-            ImmolationTimer = 5000;
-            CheckTimer = 5000;
             instance = creature->GetInstanceScript();
             AnetheronGUID = instance->GetData64(DATA_ANETHERON);
         }
@@ -228,7 +225,7 @@ public:
             {
                 if (AnetheronGUID)
                 {
-                    Creature* boss = ObjectAccessor::GetCreature(*me, AnetheronGUID);
+                    Creature* boss = Unit::GetCreature((*me), AnetheronGUID);
                     if (!boss || (boss && boss->isDead()))
                     {
                         me->setDeathState(JUST_DIED);

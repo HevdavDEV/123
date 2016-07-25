@@ -284,7 +284,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     {
         SQLTransaction trans = CharacterDatabase.BeginTransaction();
 
-        stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_PET_SLOT_BY_SLOT_EXCLUDE_ID);
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_UDP_CHAR_PET_SLOT_BY_SLOT_EXCLUDE_ID);
         stmt->setUInt8(0, uint8(PET_SAVE_NOT_IN_SLOT));
         stmt->setUInt32(1, ownerid);
         stmt->setUInt8(2, uint8(PET_SAVE_AS_CURRENT));
@@ -435,7 +435,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
         // prevent duplicate using slot (except PET_SAVE_NOT_IN_SLOT)
         if (mode <= PET_SAVE_LAST_STABLE_SLOT)
         {
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_PET_SLOT_BY_SLOT);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_UDP_CHAR_PET_SLOT_BY_SLOT);
             stmt->setUInt8(0, uint8(PET_SAVE_NOT_IN_SLOT));
             stmt->setUInt32(1, ownerLowGUID);
             stmt->setUInt8(2, uint8(mode));
@@ -960,34 +960,8 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
 
             SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4)));
             SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4)));
+
             //SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(cinfo->attackpower));
-
-            /* You might ask the reason behind this. SUMMON_PET is used for generic summons and I'm not sure if all of them
-            should scale as this so keeping track of affected minions like this. */
-
-            switch (GetEntry())
-            {
-                case 416:   // Imp
-                case 417:   // Felhunter
-                case 1860:  // Voidwalker
-                case 1863:  // Succubus
-                case 17252: // Felguard
-                    m_modMeleeHitChance = m_owner->m_modMeleeHitChance;
-                    m_modSpellHitChance = m_owner->m_modSpellHitChance;               
-                    break;
-                case 26125: // Unholy DK ghoul
-                {
-                    // Let them inherit their master's hit and haste rating.
-                    m_modMeleeHitChance = m_owner->m_modMeleeHitChance;
-                    m_modSpellHitChance = m_owner->m_modSpellHitChance;
-                    float ownerHaste = ((Player*)m_owner)->GetRatingBonusValue(CR_HASTE_MELEE);
-                    ApplyAttackTimePercentMod(BASE_ATTACK, ownerHaste, true);
-                    break;
-                }
-                default:
-                    break;
-            }
-
             break;
         }
         case HUNTER_PET:
@@ -999,16 +973,8 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
             //damage range is then petlevel / 2
             SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4)));
             //damage is increased afterwards as strength and pet scaling modify attack power
-<<<<<<< HEAD
             SetModifierValue(UNIT_MOD_STAT_STAMINA, BASE_VALUE, float(m_owner->GetStat(STAT_STAMINA)) * 0.3f);
             //  Bonus Stamina (30% of player stamina)
-=======
-
-            // Let hunter pets inherit their master's hit rating
-            m_modMeleeHitChance = m_owner->m_modMeleeHitChance;
-            m_modSpellHitChance = m_owner->m_modSpellHitChance;
-
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
             break;
         }
         default:
@@ -1018,7 +984,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                 case 510: // mage Water Elemental
                 {
                     SetBonusDamage(int32(GetOwner()->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FROST) * 0.33f));
-                    m_modSpellHitChance = m_owner->m_modSpellHitChance; // Let Water Elementals inherit spell hit from their master
                     break;
                 }
                 case 1964: //force of nature
@@ -1061,10 +1026,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                     SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float((petlevel * 4 - petlevel) + bonus_dmg));
                     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float((petlevel * 4 + petlevel) + bonus_dmg));
 
-                    // Let summons inherit their master's hit rating.
-                    m_modMeleeHitChance = m_owner->m_modMeleeHitChance;
-                    m_modSpellHitChance = m_owner->m_modSpellHitChance;
-
                     break;
                 }
                 case 19833: //Snake Trap - Venomous Snake
@@ -1087,10 +1048,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                     // wolf attack speed is 1.5s
                     SetAttackTime(BASE_ATTACK, cinfo->baseattacktime);
 
-                    // Wolf should inherit 100% of the master's hit rating
-                    m_modMeleeHitChance = m_owner->m_modMeleeHitChance;
-                    m_modSpellHitChance = m_owner->m_modSpellHitChance;
-
                     SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float((petlevel * 4 - petlevel)));
                     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float((petlevel * 4 + petlevel)));
 
@@ -1109,8 +1066,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                         SetCreateMana(28 + 30*petlevel);
                         SetCreateHealth(28 + 10*petlevel);
                     }
-                    // Let mirror images inherit their master's spell hit rating
-                    m_modSpellHitChance = m_owner->m_modSpellHitChance;
                     break;
                 }
                 case 27829: // Ebon Gargoyle
@@ -1120,7 +1075,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                         SetCreateMana(28 + 10*petlevel);
                         SetCreateHealth(28 + 30*petlevel);
                     }
-<<<<<<< HEAD
                     if(Player *owner = m_owner->ToPlayer()) // get 100% of owning player's physical (melee) haste
                     {
                         float bonus = owner->GetRatingBonusValue(CR_HASTE_MELEE);
@@ -1130,15 +1084,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                     }
 
                     // also make gargoyle benefit from haste auras, like unholy presence
-=======
-                    // Convert DK haste and hit into the gargoyle's haste/hit
-                    float ownerHaste = ((Player*)m_owner)->GetRatingBonusValue(CR_HASTE_MELEE);
-                    ApplyPercentModFloatValue(UNIT_MOD_CAST_SPEED, ownerHaste, false);
-                    m_modSpellHitChance = m_owner->m_modSpellHitChance;
-                    m_modMeleeHitChance = m_owner->m_modMeleeHitChance;
-
-                    // also make gargoyle benefit from haste auras, like unholy presence
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
                     int meleeHaste = ((Player*)m_owner)->GetTotalAuraModifier(SPELL_AURA_MOD_MELEE_HASTE);
                     ApplyCastTimePercentMod(meleeHaste, true);
 
@@ -1213,8 +1158,9 @@ void Pet::_LoadSpellCooldowns()
     {
         time_t curTime = time(NULL);
 
-        PacketCooldowns cooldowns;
-        WorldPacket data;
+        WorldPacket data(SMSG_SPELL_COOLDOWN, size_t(8+1+result->GetRowCount()*8));
+        data << GetGUID();
+        data << uint8(0x0);                                 // flags (0x1, 0x2)
 
         do
         {
@@ -1233,7 +1179,8 @@ void Pet::_LoadSpellCooldowns()
             if (db_time <= curTime)
                 continue;
 
-            cooldowns[spell_id] = uint32(db_time - curTime)*IN_MILLISECONDS;
+            data << uint32(spell_id);
+            data << uint32(uint32(db_time-curTime)*IN_MILLISECONDS);
 
             _AddCreatureSpellCooldown(spell_id, db_time);
 
@@ -1241,11 +1188,8 @@ void Pet::_LoadSpellCooldowns()
         }
         while (result->NextRow());
 
-        if (!cooldowns.empty() && GetOwner())
-        {
-            BuildCooldownPacket(data, SPELL_COOLDOWN_FLAG_NONE, cooldowns);
+        if (!m_CreatureSpellCooldowns.empty() && GetOwner())
             GetOwner()->GetSession()->SendPacket(&data);
-        }
     }
 }
 
@@ -2127,16 +2071,21 @@ void Pet::SynchronizeLevelWithOwner()
 
 void Pet::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs)
 {
-    PacketCooldowns cooldowns;
-    WorldPacket data;
+    WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+m_spells.size()*8);
+    data << uint64(GetGUID());
+    data << uint8(0x0);                                     // flags (0x1, 0x2)
     time_t curTime = time(NULL);
     for (PetSpellMap::const_iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
     {
         if (itr->second.state == PETSPELL_REMOVED)
             continue;
-
         uint32 unSpellId = itr->first;
-        SpellInfo const* spellInfo = sSpellMgr->EnsureSpellInfo(unSpellId);
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(unSpellId);
+        if (!spellInfo)
+        {
+            ASSERT(spellInfo);
+            continue;
+        }
 
         // Not send cooldown for this spells
         if (spellInfo->IsCooldownStartedOnEvent())
@@ -2147,18 +2096,14 @@ void Pet::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs)
 
         if ((idSchoolMask & spellInfo->GetSchoolMask()) && GetCreatureSpellCooldownDelay(unSpellId) < unTimeMs)
         {
-            cooldowns[unSpellId] = unTimeMs;
+            data << uint32(unSpellId);
+            data << uint32(unTimeMs);                       // in m.secs
             _AddCreatureSpellCooldown(unSpellId, curTime + unTimeMs/IN_MILLISECONDS);
         }
     }
 
-    if (!cooldowns.empty())
-    {
-        BuildCooldownPacket(data, SPELL_COOLDOWN_FLAG_NONE, cooldowns);
-
-        if (Player* owner = GetOwner())
-            owner->GetSession()->SendPacket(&data);
-    }
+    if (Player* owner = GetOwner())
+        owner->GetSession()->SendPacket(&data);
 }
 
 Player* Pet::GetOwner() const

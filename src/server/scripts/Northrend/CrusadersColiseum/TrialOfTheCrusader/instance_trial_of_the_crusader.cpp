@@ -22,8 +22,6 @@
 #include "Player.h"
 #include "TemporarySummon.h"
 
-#define in_array(item, array) std::find(array, array+(sizeof(array) / sizeof(uint32)), item) != array+(sizeof(array) / sizeof(uint32))
-
 class instance_trial_of_the_crusader : public InstanceMapScript
 {
     public:
@@ -45,7 +43,6 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                 SnoboldCount = 0;
                 MistressOfPainCount = 0;
                 TributeToImmortalityEligible = true;
-                TributeToDedicatedInsanityEligible = true;
                 NeedSave = false;
 
                 TirionFordringGUID = 0;
@@ -100,10 +97,7 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                 {
                     Creature* anubArak = Unit::GetCreature(*player, GetData64(NPC_ANUBARAK));
                     if (!anubArak)
-                    {
-                        anubArak = player->SummonCreature(NPC_ANUBARAK, AnubarakLoc[0].GetPositionX(), AnubarakLoc[0].GetPositionY(), AnubarakLoc[0].GetPositionZ(), 3, TEMPSUMMON_CORPSE_TIMED_DESPAWN, HOUR*IN_MILLISECONDS);
-                        anubArak->SetRespawnDelay(7*DAY);
-                    }
+                        anubArak = player->SummonCreature(NPC_ANUBARAK, AnubarakLoc[0].GetPositionX(), AnubarakLoc[0].GetPositionY(), AnubarakLoc[0].GetPositionZ(), 3, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
 
                     if (GameObject* floor = GameObject::GetGameObject(*player, GetData64(GO_ARGENT_COLISEUM_FLOOR)))
                         floor->SetDestructibleState(GO_DESTRUCTIBLE_DAMAGED);
@@ -363,9 +357,6 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                 {
                     CloseDoor(GetData64(GO_EAST_PORTCULLIS));
                     CloseDoor(GetData64(GO_WEB_DOOR));
-                    
-                    if (instance->IsHeroic())
-                        events.ScheduleEvent(EVENT_DEDICATED_INSANITY_CHECK, 10*IN_MILLISECONDS);
                 }
                 else
                 {
@@ -472,6 +463,9 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                             ++MistressOfPainCount;
                         else if (data == DECREASE)
                             --MistressOfPainCount;
+                        break;
+                    case DATA_TRIBUTE_TO_IMMORTALITY_ELIGIBLE:
+                        TributeToImmortalityEligible = false;
                         break;
                     default:
                         break;
@@ -652,21 +646,6 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                     else
                         ResilienceWillFixItTimer -= diff;
                 }
-
-                events.Update(diff);
-
-                while (uint32 eventId = events.ExecuteEvent())
-                {
-                    if (eventId == EVENT_DEDICATED_INSANITY_CHECK)
-                    {
-                        if (TributeToDedicatedInsanityEligible && !IsEligible())
-                            TributeToDedicatedInsanityEligible = false;
-
-                        // Only check for it if an encounter is in progress - guessing it should be like this.
-                        if (IsEncounterInProgress())
-                            events.RescheduleEvent(EVENT_DEDICATED_INSANITY_CHECK, 10*IN_MILLISECONDS);
-                    }
-                }
             }
 
             void Save()
@@ -718,29 +697,6 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                 OUT_LOAD_INST_DATA_COMPLETE;
             }
 
-            bool IsEligible()
-            {
-                Map::PlayerList const& players = instance->GetPlayers();
-                for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                {
-                    if (Player* player = itr->GetSource())
-                    {
-                        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
-                        {
-                            if (slot == EQUIPMENT_SLOT_TABARD || slot == EQUIPMENT_SLOT_BODY)
-                                continue;
-
-                            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
-                                if (item->GetTemplate()->ItemLevel < 245 || in_array(item->GetTemplate()->ItemId, AllowedItems))
-                                    continue;
-                                else
-                                    return false;
-                        }
-                    }
-                }
-                return true;
-            }
-
             bool CheckAchievementCriteriaMeet(uint32 criteria_id, Player const* /*source*/, Unit const* /*target*/, uint32 /*miscvalue1*/) OVERRIDE
             {
                 switch (criteria_id)
@@ -770,7 +726,7 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                     case A_TRIBUTE_TO_IMMORTALITY_ALLIANCE:
                         return TrialCounter == 50 && TributeToImmortalityEligible;
                     case A_TRIBUTE_TO_DEDICATED_INSANITY:
-                        return TrialCounter == 50 && TributeToDedicatedInsanityEligible;
+                        return false/*uiGrandCrusaderAttemptsLeft == 50 && !bHasAtAnyStagePlayerEquippedTooGoodItem*/;
                     default:
                         break;
                 }
@@ -816,9 +772,6 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                 uint8  SnoboldCount;
                 uint8  MistressOfPainCount;
                 bool   TributeToImmortalityEligible;
-                bool   TributeToDedicatedInsanityEligible;
-
-                EventMap events;
         };
 
         InstanceScript* GetInstanceScript(InstanceMap* map) const OVERRIDE

@@ -450,7 +450,7 @@ public:
             {
                 case ACTION_LAND_ENCOUNTER_START:
                     events.CancelEventGroup(1);
-                    if (Creature* alexstraszaBunny = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ALEXSTRASZA_BUNNY_GUID)))
+                    if (Creature* alexstraszaBunny = me->GetMap()->GetCreature(instance->GetData64(DATA_ALEXSTRASZA_BUNNY_GUID)))
                     {
                         Position pos;
                         pos.m_positionZ = alexstraszaBunny->GetPositionZ();
@@ -469,7 +469,6 @@ public:
                     DoCast(me, SPELL_VORTEX_3, true);
                     break;
                 case ACTION_LIFT_IN_AIR:
-                {
                     Position _zToLift;
                     me->GetPosition(&_zToLift);
                     if (_phase == PHASE_ONE)
@@ -483,7 +482,6 @@ public:
                         me->GetMotionMaster()->MoveTakeoff(POINT_PHASE_ONE_TO_TWO_TRANSITION, _zToLift);
                     }
                     break;
-                }
                 case ACTION_HANDLE_P_THREE_INTRO:
                     events.CancelEventGroup(0);
                     events.CancelEventGroup(1);
@@ -546,7 +544,7 @@ public:
                     break;
                 case PHASE_TWO:
                     events.ScheduleEvent(EVENT_MOVE_TO_POINT_SURGE_P_TWO, 60*IN_MILLISECONDS, 0, _phase);
-                    DoAction(ACTION_LIFT_IN_AIR);
+                    me->AI()->DoAction(ACTION_LIFT_IN_AIR);
                     break;
                 case PHASE_THREE:
                     events.ScheduleEvent(EVENT_ARCANE_PULSE, 7*IN_MILLISECONDS, 0, _phase);
@@ -586,7 +584,7 @@ public:
         {
             instance->SetBossState(DATA_MALYGOS_EVENT, FAIL);
 
-            me->GetMap()->SetZoneOverrideLight(AREA_EYE_OF_ETERNITY, LIGHT_GET_DEFAULT_FOR_MAP, 1*IN_MILLISECONDS);
+            SendLightOverride(LIGHT_GET_DEFAULT_FOR_MAP, 1*IN_MILLISECONDS);
 
             if (_phase == PHASE_THREE)
                 me->SetControlled(false, UNIT_STATE_ROOT);
@@ -715,8 +713,7 @@ public:
                     {
                         _firstCyclicMovementStarted = true;
                         me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        if (Creature* alexstraszaBunny = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ALEXSTRASZA_BUNNY_GUID)))
-                            me->SetFacingToObject(alexstraszaBunny);
+                        me->SetFacingToObject(me->GetMap()->GetCreature(instance->GetData64(DATA_ALEXSTRASZA_BUNNY_GUID)));
                         events.ScheduleEvent(EVENT_SUMMON_ARCANE_BOMB, 1*IN_MILLISECONDS, 0, PHASE_TWO);
                     }
                     _flyingOutOfPlatform = false;
@@ -725,10 +722,9 @@ public:
                     break;
                 case POINT_PHASE_ONE_TO_TWO_TRANSITION:
                     me->SetDisableGravity(true);
-                    if (Creature* alexstraszaBunny = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ALEXSTRASZA_BUNNY_GUID)))
-                        me->SetFacingToObject(alexstraszaBunny);
-                    me->GetMap()->SetZoneOverrideLight(AREA_EYE_OF_ETERNITY, LIGHT_ARCANE_RUNES, 5 * IN_MILLISECONDS);
-                    events.ScheduleEvent(EVENT_FLY_OUT_OF_PLATFORM, 18 * IN_MILLISECONDS, 0, PHASE_TWO);
+                    me->SetFacingToObject(me->GetMap()->GetCreature(instance->GetData64(DATA_ALEXSTRASZA_BUNNY_GUID)));
+                    SendLightOverride(LIGHT_ARCANE_RUNES, 5*IN_MILLISECONDS);
+                    events.ScheduleEvent(EVENT_FLY_OUT_OF_PLATFORM, 18*IN_MILLISECONDS, 0, PHASE_TWO);
                     break;
                 case POINT_SURGE_OF_POWER_P_TWO:
                     if (!_performingDestroyPlatform)
@@ -739,7 +735,7 @@ public:
                     }
                     break;
                 case POINT_DESTROY_PLATFORM_P_TWO:
-                    me->GetMap()->SetZoneOverrideLight(AREA_EYE_OF_ETERNITY, LIGHT_OBSCURE_SPACE, 1 * IN_MILLISECONDS);
+                    SendLightOverride(LIGHT_OBSCURE_SPACE, 1*IN_MILLISECONDS);
                     DoCast(me, SPELL_DESTROY_PLATFORM_CHANNEL);
                     events.ScheduleEvent(EVENT_MOVE_TO_P_THREE_POINT, 11*IN_MILLISECONDS, 0, PHASE_TWO);
                     break;
@@ -784,7 +780,7 @@ public:
                         me->CastCustomSpell(SPELL_RANDOM_PORTAL, SPELLVALUE_MAX_TARGETS, 1);
                         break;
                     case EVENT_LAND_START_ENCOUNTER:
-                        if (GameObject* iris = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_FOCUSING_IRIS_GUID)))
+                        if (GameObject* iris = me->GetMap()->GetGameObject(instance->GetData64(DATA_FOCUSING_IRIS_GUID)))
                         {
                             me->SetFacingToObject(iris);
                             iris->Delete(); // this is not the best way.
@@ -841,7 +837,7 @@ public:
                     case EVENT_FLY_OUT_OF_PLATFORM:
                         if (!_performingDestroyPlatform)
                         {
-                            if (Creature* alexstraszaBunny = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ALEXSTRASZA_BUNNY_GUID)))
+                            if (Creature* alexstraszaBunny = me->GetMap()->GetCreature(instance->GetData64(DATA_ALEXSTRASZA_BUNNY_GUID)))
                             {
                                 Position randomPosOnRadius;
                                 // Hardcodded retail value, reason is Z getters can fail... (TO DO: Change to getter when height calculation works on 100%!)
@@ -912,7 +908,7 @@ public:
                         if (!_flyingOutOfPlatform)
                         {
                             DoCast(me, SPELL_SUMMON_ARCANE_BOMB, true);
-                            if (Creature* lastArcaneOverloadBunny = ObjectAccessor::GetCreature(*me, _arcaneOverloadGUID))
+                            if (Creature* lastArcaneOverloadBunny = me->GetMap()->GetCreature(_arcaneOverloadGUID))
                                 DoCast(lastArcaneOverloadBunny, SPELL_ARCANE_BOMB_TRIGGER, true);
                         }
                         events.ScheduleEvent(EVENT_SUMMON_ARCANE_BOMB, urand(15, 16)*IN_MILLISECONDS, 2, PHASE_TWO);
@@ -931,7 +927,7 @@ public:
                         }
                         break;
                     case EVENT_LIGHT_DIMENSION_CHANGE:
-                        me->GetMap()->SetZoneOverrideLight(AREA_EYE_OF_ETERNITY, LIGHT_CHANGE_DIMENSIONS, 2 * IN_MILLISECONDS);
+                        SendLightOverride(LIGHT_CHANGE_DIMENSIONS, 2*IN_MILLISECONDS);
                         break;
                     case EVENT_DELAY_MOVE_TO_DESTROY_P:
                         me->GetMotionMaster()->MovePoint(POINT_DESTROY_PLATFORM_P_TWO, MalygosPositions[0]);
@@ -941,7 +937,7 @@ public:
                         me->GetMotionMaster()->MovePoint(POINT_IDLE_P_THREE, MalygosPositions[4]);
                         break;
                     case EVENT_START_P_THREE:
-                        me->GetMap()->SetZoneOverrideLight(AREA_EYE_OF_ETERNITY, LIGHT_OBSCURE_ARCANE_RUNES, 1 * IN_MILLISECONDS);
+                        SendLightOverride(LIGHT_OBSCURE_ARCANE_RUNES, 1*IN_MILLISECONDS);
                         DoCast(me, SPELL_CLEAR_ALL_DEBUFFS);
                         DoCast(me, SPELL_IMMUNE_CURSES);
                         _canAttack = true;
@@ -997,7 +993,7 @@ public:
         {
             _JustDied();
             Talk(SAY_DEATH);
-            if (Creature* alexstraszaGiftBoxBunny = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_GIFT_BOX_BUNNY_GUID)))
+            if (Creature* alexstraszaGiftBoxBunny = me->GetMap()->GetCreature(instance->GetData64(DATA_GIFT_BOX_BUNNY_GUID)))
             {
                 if (GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL)
                     alexstraszaGiftBoxBunny->SummonGameObject(GO_HEART_OF_MAGIC_10, HeartOfMagicSpawnPos.GetPositionX(), HeartOfMagicSpawnPos.GetPositionY(),
@@ -1026,6 +1022,27 @@ public:
                 point.z = z; // Don't use any height getters unless all bugs are fixed.
                 path.push_back(point);
             }
+        }
+
+        // Function that will change lights of map for all players on map.
+        void SendLightOverride(uint32 overrideId, uint32 fadeInTime) const
+        {
+            WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
+            data << uint32(1773);       // Light.dbc entry (map default)
+            data << uint32(overrideId); // Light.dbc entry (override)
+            data << uint32(fadeInTime);
+            SendPacketToPlayers(&data);
+        }
+
+        // Send packet to all players in Eye of Eternity
+        void SendPacketToPlayers(WorldPacket const* data) const
+        {
+            Map::PlayerList const& players = me->GetMap()->GetPlayers();
+            if (!players.isEmpty())
+                for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                    if (Player* player = itr->GetSource())
+                        if (player->GetAreaId() == AREA_EYE_OF_ETERNITY)
+                            player->GetSession()->SendPacket(data);
         }
 
         uint8 _phase; // Counter for phases used with a getter.
@@ -1070,7 +1087,7 @@ public:
         {
             if (spell->Id == SPELL_PORTAL_OPENED)
             {
-                if (Creature* malygos = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_MALYGOS)))
+                if (Creature* malygos = me->GetMap()->GetCreature(_instance->GetData64(DATA_MALYGOS)))
                 {
                     if (malygos->AI()->GetData(DATA_PHASE) == PHASE_ONE)
                         DoCast(me, SPELL_SUMMON_POWER_PARK, true);
@@ -1084,12 +1101,15 @@ public:
             if (!me->HasAura(SPELL_PORTAL_VISUAL_CLOSED) && !me->HasAura(SPELL_PORTAL_OPENED))
                 DoCast(me, SPELL_PORTAL_VISUAL_CLOSED, true);
 
-            if (Creature* malygos = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_MALYGOS)))
+            if (_instance)
             {
-                if (malygos->AI()->GetData(DATA_PHASE) != PHASE_ONE && me->HasAura(SPELL_PORTAL_OPENED))
+                if (Creature* malygos = me->GetMap()->GetCreature(_instance->GetData64(DATA_MALYGOS)))
                 {
-                    me->RemoveAura(SPELL_PORTAL_OPENED);
-                    DoCast(me, SPELL_PORTAL_VISUAL_CLOSED, true);
+                    if (malygos->AI()->GetData(DATA_PHASE) != PHASE_ONE && me->HasAura(SPELL_PORTAL_OPENED))
+                    {
+                        me->RemoveAura(SPELL_PORTAL_OPENED);
+                        DoCast(me, SPELL_PORTAL_VISUAL_CLOSED, true);
+                    }
                 }
             }
         }
@@ -1123,8 +1143,9 @@ public:
         {
             me->GetMotionMaster()->MoveIdle();
 
-            if (Creature* malygos = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_MALYGOS)))
-                me->GetMotionMaster()->MoveFollow(malygos, 0.0f, 0.0f);
+            if (_instance)
+                if (Creature* malygos = me->GetMap()->GetCreature(_instance->GetData64(DATA_MALYGOS)))
+                    me->GetMotionMaster()->MoveFollow(malygos, 0.0f, 0.0f);
         }
 
         void UpdateAI(uint32 /*diff*/) OVERRIDE
@@ -1132,7 +1153,7 @@ public:
             if (!_instance)
                 return;
 
-            if (Creature* malygos = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_MALYGOS)))
+            if (Creature* malygos = me->GetMap()->GetCreature(_instance->GetData64(DATA_MALYGOS)))
             {
                 if (malygos->AI()->GetData(DATA_PHASE) != PHASE_ONE || _instance->GetBossState(DATA_MALYGOS_EVENT) == FAIL)
                 {
@@ -1411,7 +1432,7 @@ class npc_nexus_lord : public CreatureScript
 
             void JustDied(Unit* /*killer*/) OVERRIDE
             {
-                if (Creature* malygos = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_MALYGOS)))
+                if (Creature* malygos = me->GetMap()->GetCreature(_instance->GetData64(DATA_MALYGOS)))
                     malygos->AI()->SetData(DATA_SUMMON_DEATHS, malygos->AI()->GetData(DATA_SUMMON_DEATHS) + 1);
             }
 
@@ -1478,7 +1499,7 @@ class npc_scion_of_eternity : public CreatureScript
 
             void JustDied(Unit* /*killer*/) OVERRIDE
             {
-                if (Creature* malygos = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_MALYGOS)))
+                if (Creature* malygos = me->GetMap()->GetCreature(_instance->GetData64(DATA_MALYGOS)))
                     malygos->AI()->SetData(DATA_SUMMON_DEATHS, malygos->AI()->GetData(DATA_SUMMON_DEATHS) + 1);
             }
 
@@ -1521,7 +1542,7 @@ public:
 
         void DoAction(int32 /*action*/) OVERRIDE
         {
-            if (Creature* malygos = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_MALYGOS)))
+            if (Creature* malygos = me->GetMap()->GetCreature(_instance->GetData64(DATA_MALYGOS)))
             {
                 if (malygos->AI()->GetData(DATA_PHASE) == PHASE_TWO)
                     me->DespawnOrUnsummon(6*IN_MILLISECONDS);
@@ -2026,7 +2047,7 @@ class spell_scion_of_eternity_arcane_barrage : public SpellScriptLoader
 
                 Creature* caster = GetCaster()->ToCreature();
                 InstanceScript* instance = caster->GetInstanceScript();
-                Creature* malygos = ObjectAccessor::GetCreature(*caster, instance->GetData64(DATA_MALYGOS));
+                Creature* malygos = caster->GetMap()->GetCreature(instance->GetData64(DATA_MALYGOS));
 
                 // If max possible targets are more than 1 then Scions wouldn't select previosly selected target,
                 // in longer terms this means if spell picks target X then 2nd cast of this spell will pick smth else
@@ -2211,7 +2232,6 @@ class spell_alexstrasza_bunny_destroy_platform_event : public SpellScriptLoader
         }
 };
 
-// 56070 - Summon Red Dragon Buddy
 class spell_wyrmrest_skytalon_summon_red_dragon_buddy : public SpellScriptLoader
 {
     public:
@@ -2226,16 +2246,19 @@ class spell_wyrmrest_skytalon_summon_red_dragon_buddy : public SpellScriptLoader
                 return GetCaster()->GetTypeId() == TYPEID_PLAYER;
             }
 
-            void SetDest(SpellDestination& dest)
+            void ChangeSummonPos(SpellEffIndex /*effIndex*/)
             {
                 // Adjust effect summon position to lower Z
-                Position const offset = { 0.0f, 0.0f, -80.0f, 0.0f };
-                dest.RelocateOffset(offset);
+                WorldLocation summonPos = *GetExplTargetDest();
+                Position offset = { 0.0f, 0.0f, -80.0f, 0.0f };
+                summonPos.RelocateOffset(offset);
+                SetExplTargetDest(summonPos);
+                GetHitDest()->RelocateOffset(offset);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_wyrmrest_skytalon_summon_red_dragon_buddy_SpellScript::SetDest, EFFECT_0, TARGET_DEST_CASTER_RADIUS);
+                OnEffectHit += SpellEffectFn(spell_wyrmrest_skytalon_summon_red_dragon_buddy_SpellScript::ChangeSummonPos, EFFECT_0, SPELL_EFFECT_SUMMON);
             }
         };
 
@@ -2327,7 +2350,7 @@ class spell_malygos_surge_of_power_warning_selector_25 : public SpellScriptLoade
 
             void ExecuteMainSpell()
             {
-                GetCaster()->ToCreature()->CastSpell((Unit*)NULL, SPELL_SURGE_OF_POWER_PHASE_3_25);
+                GetCaster()->ToCreature()->AI()->DoCastAOE(SPELL_SURGE_OF_POWER_PHASE_3_25);
             }
 
             void Register() OVERRIDE

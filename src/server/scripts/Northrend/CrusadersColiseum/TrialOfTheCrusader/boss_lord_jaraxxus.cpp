@@ -239,7 +239,7 @@ class npc_legion_flame : public CreatureScript
             void UpdateAI(uint32 /*diff*/) OVERRIDE
             {
                 UpdateVictim();
-                if (_instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
+                if (_instance && _instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
                     me->DespawnOrUnsummon();
             }
             private:
@@ -326,7 +326,7 @@ class npc_fel_infernal : public CreatureScript
 
             void UpdateAI(uint32 diff) OVERRIDE
             {
-                if (_instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
+                if (_instance && _instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
                 {
                     me->DespawnOrUnsummon();
                     return;
@@ -420,7 +420,8 @@ class npc_mistress_of_pain : public CreatureScript
             npc_mistress_of_painAI(Creature* creature) : ScriptedAI(creature)
             {
                 _instance = creature->GetInstanceScript();
-                _instance->SetData(DATA_MISTRESS_OF_PAIN_COUNT, INCREASE);
+                if (_instance)
+                    _instance->SetData(DATA_MISTRESS_OF_PAIN_COUNT, INCREASE);
             }
 
             void Reset() OVERRIDE
@@ -434,12 +435,13 @@ class npc_mistress_of_pain : public CreatureScript
 
             void JustDied(Unit* /*killer*/) OVERRIDE
             {
-                _instance->SetData(DATA_MISTRESS_OF_PAIN_COUNT, DECREASE);
+                if (_instance)
+                    _instance->SetData(DATA_MISTRESS_OF_PAIN_COUNT, DECREASE);
             }
 
             void UpdateAI(uint32 diff) OVERRIDE
             {
-                if (_instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
+                if (_instance && _instance->GetBossState(BOSS_JARAXXUS) != IN_PROGRESS)
                 {
                     me->DespawnOrUnsummon();
                     return;

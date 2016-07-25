@@ -33,10 +33,7 @@ void HomeMovementGenerator<Creature>::DoFinalize(Creature* owner)
     owner->ClearUnitState(UNIT_STATE_EVADE);
     if (arrived)
     {
-<<<<<<< HEAD
         // owner->ClearUnitState(UNIT_STATE_EVADE);
-=======
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
         owner->SetWalk(true);
         owner->LoadCreaturesAddon(true);
         owner->AI()->JustReachedHome();

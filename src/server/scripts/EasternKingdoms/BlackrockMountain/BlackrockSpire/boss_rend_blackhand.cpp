@@ -164,12 +164,7 @@ public:
 
     struct boss_rend_blackhandAI : public BossAI
     {
-        boss_rend_blackhandAI(Creature* creature) : BossAI(creature, DATA_WARCHIEF_REND_BLACKHAND)
-        {
-            gythEvent = false;
-            victorGUID = 0;
-            portcullisGUID = 0;
-        }
+        boss_rend_blackhandAI(Creature* creature) : BossAI(creature, DATA_WARCHIEF_REND_BLACKHAND) { }
 
         void Reset() OVERRIDE
         {
@@ -196,7 +191,7 @@ public:
 
         void SetData(uint32 type, uint32 data) OVERRIDE
         {
-            if (type == AREATRIGGER && data == AREATRIGGER_BLACKROCK_STADIUM)
+            if (instance && type == AREATRIGGER && data == AREATRIGGER_BLACKROCK_STADIUM)
             {
                 if (!gythEvent)
                 {

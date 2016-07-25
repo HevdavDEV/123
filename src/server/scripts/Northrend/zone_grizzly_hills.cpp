@@ -20,6 +20,8 @@
 #include "ScriptedCreature.h"
 #include "ScriptedEscortAI.h"
 #include "Player.h"
+#include "Spell.h"
+#include "SpellInfo.h"
 #include "SpellScript.h"
 #include "CreatureTextMgr.h"
 

@@ -846,8 +846,7 @@ public:
 enum EtherealTeleportPad
 {
     NPC_IMAGE_WIND_TRADER               = 20518,
-    QUEST_A_NOT_SO_MODEST_PROPOSAL      = 10270,
-    QUEST_GETTING_DOWN_TO_THE_BUSINESS  = 10271
+    ITEM_TELEPORTER_POWER_PACK          = 28969,
 };
 
 class go_ethereal_teleport_pad : public GameObjectScript
@@ -855,27 +854,14 @@ class go_ethereal_teleport_pad : public GameObjectScript
 public:
     go_ethereal_teleport_pad() : GameObjectScript("go_ethereal_teleport_pad") { }
 
-	bool etherealTeleportHelper(uint32 status1, uint32 status2)
-	{  
-		if((status1 != 3 || status1 != 0) && status2 == 0)
-			return true;
-		else
-			return false;
-	}
     bool OnGossipHello(Player* player, GameObject* go) OVERRIDE
     {
-		uint32 modest = player->GetQuestStatus(QUEST_A_NOT_SO_MODEST_PROPOSAL);
-		uint32 business = player->GetQuestStatus(QUEST_GETTING_DOWN_TO_THE_BUSINESS);
-		
-		bool check = etherealTeleportHelper(modest, business);
-		std::cout << "Modest: " << modest << " Business: " << business << " Check = " << check << std::endl;
-		if(!check)
-			return false;
-		else
-		{
-			go->SummonCreature(NPC_IMAGE_WIND_TRADER, go->GetPositionX(), go->GetPositionY(), go->GetPositionZ(), go->GetAngle(player), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 60000);
-			return true;
-		}
+        if (!player->HasItemCount(ITEM_TELEPORTER_POWER_PACK))
+            return false;
+
+        go->SummonCreature(NPC_IMAGE_WIND_TRADER, go->GetPositionX(), go->GetPositionY(), go->GetPositionZ(), go->GetAngle(player), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 60000);
+
+        return true;
     }
 };
 

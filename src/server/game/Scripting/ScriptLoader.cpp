@@ -16,14 +16,13 @@
  */
 
 #include "ScriptLoader.h"
-#include "AnticheatMgr.h"
 
 //examples
 void AddSC_example_creature();
 void AddSC_example_escort();
 void AddSC_example_gossip_codebox();
 void AddSC_example_misc();
-//void AddSC_invisible_commandscript();
+void AddSC_example_commandscript();
 
 // spells
 void AddSC_deathknight_spell_scripts();
@@ -45,7 +44,6 @@ void AddSC_holiday_spell_scripts();
 void AddSC_SmartSCripts();
 
 //Commands
-void AddSC_anticheat_commandscript();
 void AddSC_account_commandscript();
 void AddSC_achievement_commandscript();
 void AddSC_arena_commandscript();
@@ -524,7 +522,6 @@ void AddSC_boss_falric();
 void AddSC_boss_marwyn();
 void AddSC_boss_lord_marrowgar();       // Icecrown Citadel
 void AddSC_boss_lady_deathwhisper();
-void AddSC_boss_icecrown_gunship_battle();
 void AddSC_boss_deathbringer_saurfang();
 void AddSC_boss_festergut();
 void AddSC_boss_rotface();
@@ -677,7 +674,6 @@ void AddSC_zangarmarsh();
 
 // Events
 void AddSC_event_childrens_week();
-void AddSC_event_midsummer();
 
 // Pets
 void AddSC_deathknight_pet_scripts();
@@ -698,7 +694,7 @@ void AddSC_outdoorpvp_tf();
 void AddSC_outdoorpvp_zm();
 
 // player
-void AddSC_lexics_chat_log();
+void AddSC_chat_log();
 
 #endif
 
@@ -708,7 +704,6 @@ void AddScripts()
     AddSpellScripts();
     AddSC_SmartSCripts();
     AddCommandScripts();
-    sAnticheatMgr->StartScripts();
 #ifdef SCRIPTS
     AddWorldScripts();
     AddEasternKingdomsScripts();
@@ -729,7 +724,7 @@ void AddExampleScripts()
     AddSC_example_escort();
     AddSC_example_gossip_codebox();
     AddSC_example_misc();
- //   AddSC_invisible_commandscript();
+    AddSC_example_commandscript();
 }
 
 void AddSpellScripts()
@@ -753,7 +748,6 @@ void AddSpellScripts()
 
 void AddCommandScripts()
 {
-    AddSC_anticheat_commandscript();
     AddSC_account_commandscript();
     AddSC_achievement_commandscript();
     AddSC_arena_commandscript();
@@ -809,7 +803,7 @@ void AddWorldScripts()
     AddSC_npcs_special();
     AddSC_npc_taxi();
     AddSC_achievement_scripts();
-    AddSC_lexics_chat_log();
+    AddSC_chat_log();
 #endif
 }
 
@@ -1367,7 +1361,6 @@ void AddNorthrendScripts()
     AddSC_boss_marwyn();
     AddSC_boss_lord_marrowgar();        // Icecrown Citadel
     AddSC_boss_lady_deathwhisper();
-    AddSC_boss_icecrown_gunship_battle();
     AddSC_boss_deathbringer_saurfang();
     AddSC_boss_festergut();
     AddSC_boss_rotface();
@@ -1406,7 +1399,6 @@ void AddEventScripts()
 {
 #ifdef SCRIPTS
     AddSC_event_childrens_week();
-    AddSC_event_midsummer();
 #endif
 }
 
@@ -1442,63 +1434,55 @@ void AddBattlegroundScripts()
 
 #ifdef SCRIPTS
 /* This is where custom scripts' loading functions should be declared. */
-<<<<<<< HEAD
-//void AddSC_npc_morpher();
-void AddSC_CPWS_Transmogrification();
-void AddSC_Mod_AutoLearn();
-void AddSC_Boss_Announcer();
-void AddSC_Professions_NPC();
-void AddSC_Reset();
-void AddSC_fast_arena_start();
-void AddSC_npc_welcome();
-void AddSC_channel_factions();
-void AddSC_npc_1v1arena();
-void AddSC_Npc_skill();
+void AddSC_at_beastmaster();
 void AddSC_npc_enchant();
-void AddSC_arena_spectator_script();
-void AddSC_Killstreak_System();
-void AddSC_login_script();
+void AddSC_npc_enchantment();
+void AddSC_npc_morph();
+void AddSC_npc_morpher();
+void AddSC_Professions_NPC();
+void AddSC_npc_reset_instance();
+void AddSC_TitleNpc();
+void AddSC_Npc_skill();
 void AddSC_Teleporter_NPC_CreatureScript();
-void AddSC_Beastmaster_NPC_CreatureScript();
-void AddSC_SymbolixDevArenaSystem();
-void AddSC_REFORGER_NPC();
 void AddSC_Top5_Killers();
-void AddSC_challenge_commandscript();
-void AddSC_npc_arena_setup();
-=======
-void AddSC_custom();
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
+void AddSC_npc_welcome();
+void AddSC_Boss_Announcer();
+void AddSC_Mod_AutoLearn();
+void AddSC_Reset();
+void AddSC_login_script();
+void AddSC_Killstreak_System();
+void AddSC_fast_arena_start();
+void AddSC_channel_factions();
+void AddSC_CPWS_Transmogrification();
+void AddSC_npc_1v1arena();
+void AddSC_arena_spectator_script();
 #endif
 
 void AddCustomScripts()
 {
 #ifdef SCRIPTS
     /* This is where custom scripts should be added. */
-<<<<<<< HEAD
-	//AddSC_npc_morpher();
-    AddSC_CPWS_Transmogrification();
-    AddSC_Mod_AutoLearn();
-    AddSC_Boss_Announcer();
-    AddSC_Professions_NPC();
-	AddSC_Reset();
-	AddSC_fast_arena_start();
-	AddSC_npc_welcome();
-	AddSC_channel_factions();
-	AddSC_npc_1v1arena();
-	AddSC_Npc_skill();
+	AddSC_at_beastmaster();
 	AddSC_npc_enchant();
-	AddSC_arena_spectator_script();
-	AddSC_Killstreak_System();
-	AddSC_login_script();
+	AddSC_npc_enchantment();
+	AddSC_npc_morph();
+	AddSC_npc_morpher();
+	AddSC_Professions_NPC();
+	AddSC_npc_reset_instance();
+	AddSC_TitleNpc();
+	AddSC_Npc_skill();
 	AddSC_Teleporter_NPC_CreatureScript();
-	AddSC_Beastmaster_NPC_CreatureScript();
-	AddSC_SymbolixDevArenaSystem();
-	AddSC_REFORGER_NPC();
-	AddSC_Top5_Killers();
-	AddSC_challenge_commandscript();
-	AddSC_npc_arena_setup();
-=======
-	AddSC_custom();
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
+	AddSC_Top5_Killers()
+	AddSC_npc_welcome();
+	AddSC_Boss_Announcer();
+	AddSC_Mod_AutoLearn();
+	AddSC_Reset();
+	AddSC_login_script();
+	AddSC_Killstreak_System();
+	AddSC_fast_arena_start();
+	AddSC_channel_factions();
+	AddSC_CPWS_Transmogrification();
+	AddSC_npc_1v1arena();
+	AddSC_arena_spectator_script();
 #endif
 }

@@ -32,13 +32,7 @@ enum DataTypes
     // Additional Data
     DATA_WATCHER_GASHRA             = 3,
     DATA_WATCHER_SILTHIK            = 4,
-    DATA_WATCHER_NARJIL             = 5,
-
-    // TW - Hadronox Denied
-    DATA_FRONT_DOOR_TRIGGER_A_GUID,
-    DATA_FRONT_DOOR_TRIGGER_B_GUID,
-    DATA_SIDE_DOOR_TRIGGER_GUID,
-    DATA_HADRONOX_EVENT
+    DATA_WATCHER_NARJIL             = 5
 };
 
 enum CreatureIds
@@ -49,9 +43,7 @@ enum CreatureIds
 
     NPC_WATCHER_NARJIL              = 28729,
     NPC_WATCHER_GASHRA              = 28730,
-    NPC_WATCHER_SILTHIK             = 28731,
-
-    NPC_WORLD_TRIGGER_LARGE_AOI     = 23472
+    NPC_WATCHER_SILTHIK             = 28731
 };
 
 enum GameObjectIds
@@ -60,11 +52,6 @@ enum GameObjectIds
     GO_ANUBARAK_DOOR_1              = 192396,
     GO_ANUBARAK_DOOR_2              = 192397,
     GO_ANUBARAK_DOOR_3              = 192398
-};
-
-enum InstanceActions
-{
-    ACTION_SUMMON_REINFORCEMENTS       = 1 // Used by Hadronox to start controlling front door triggers
 };
 
 template<class AI>

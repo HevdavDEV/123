@@ -211,8 +211,8 @@ class boss_razorscale_controller : public CreatureScript
                             Harpoon3->RemoveFromWorld();
                         if (GameObject* Harpoon4 = ObjectAccessor::GetGameObject(*me, instance->GetData64(GO_RAZOR_HARPOON_4)))
                             Harpoon4->RemoveFromWorld();
-                        DoAction(ACTION_HARPOON_BUILD);
-                        DoAction(ACTION_PLACE_BROKEN_HARPOON);
+                        me->AI()->DoAction(ACTION_HARPOON_BUILD);
+                        me->AI()->DoAction(ACTION_PLACE_BROKEN_HARPOON);
                         break;
                     case SPELL_HARPOON_SHOT_1:
                     case SPELL_HARPOON_SHOT_2:
@@ -245,12 +245,6 @@ class boss_razorscale_controller : public CreatureScript
                             me->SummonGameObject(GO_RAZOR_BROKEN_HARPOON, PosHarpoon[n].GetPositionX(), PosHarpoon[n].GetPositionY(), PosHarpoon[n].GetPositionZ(), 2.286f, 0, 0, 0, 0, 180000);
                         break;
                 }
-            }
-            
-            void KilledUnit(Unit* who) OVERRIDE
-            {
-                if (who->GetTypeId() == TYPEID_PLAYER)
-                    instance->SetData(DATA_CRITERIA_RAZORSCALE, 1);
             }
 
             void UpdateAI(uint32 Diff) OVERRIDE
@@ -318,7 +312,7 @@ class go_razorscale_harpoon : public GameObjectScript
         bool OnGossipHello(Player* /*player*/, GameObject* go) OVERRIDE
         {
             InstanceScript* instance = go->GetInstanceScript();
-            if (ObjectAccessor::GetCreature(*go, instance->GetData64(BOSS_RAZORSCALE)))
+            if (ObjectAccessor::GetCreature(*go, instance ? instance->GetData64(BOSS_RAZORSCALE) : 0))
                 go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
             return false;
         }
@@ -353,14 +347,14 @@ class boss_razorscale : public CreatureScript
                 me->SetReactState(REACT_PASSIVE);
                 PermaGround = false;
                 HarpoonCounter = 0;
-                if (Creature* commander = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_EXPEDITION_COMMANDER)))
+                if (Creature* commander = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(DATA_EXPEDITION_COMMANDER) : 0))
                     commander->AI()->DoAction(ACTION_COMMANDER_RESET);
             }
 
             void EnterCombat(Unit* /*who*/) OVERRIDE
             {
                 _EnterCombat();
-                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_RAZORSCALE_CONTROL)))
+                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(DATA_RAZORSCALE_CONTROL) : 0))
                     controller->AI()->DoAction(ACTION_HARPOON_BUILD);
                 me->SetSpeed(MOVE_FLIGHT, 3.0f, true);
                 me->SetReactState(REACT_PASSIVE);
@@ -375,7 +369,7 @@ class boss_razorscale : public CreatureScript
             void JustDied(Unit* /*killer*/) OVERRIDE
             {
                 _JustDied();
-                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_RAZORSCALE_CONTROL)))
+                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(DATA_RAZORSCALE_CONTROL) : 0))
                     controller->AI()->Reset();
             }
 
@@ -402,12 +396,6 @@ class boss_razorscale : public CreatureScript
                         return 1;
 
                 return 0;
-            }
-
-            void KilledUnit(Unit* who) OVERRIDE
-            {
-                if (who->GetTypeId() == TYPEID_PLAYER)
-                    instance->SetData(DATA_CRITERIA_RAZORSCALE, 1);
             }
 
             void UpdateAI(uint32 Diff) OVERRIDE
@@ -457,7 +445,7 @@ class boss_razorscale : public CreatureScript
                                 me->SetCanFly(false);
                                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED | UNIT_FLAG_PACIFIED);
-                                if (Creature* commander = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_EXPEDITION_COMMANDER)))
+                                if (Creature* commander = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(DATA_EXPEDITION_COMMANDER) : 0))
                                     commander->AI()->DoAction(ACTION_GROUND_PHASE);
                                 events.ScheduleEvent(EVENT_BREATH, 30000, 0, PHASE_GROUND);
                                 events.ScheduleEvent(EVENT_BUFFET, 33000, 0, PHASE_GROUND);
@@ -473,7 +461,7 @@ class boss_razorscale : public CreatureScript
                                 return;
                             case EVENT_BUFFET:
                                 DoCastAOE(SPELL_WINGBUFFET);
-                                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_RAZORSCALE_CONTROL)))
+                                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(DATA_RAZORSCALE_CONTROL) : 0))
                                     controller->CastSpell(controller, SPELL_FLAMED, true);
                                 events.CancelEvent(EVENT_BUFFET);
                                 return;
@@ -701,7 +689,7 @@ class npc_expedition_commander : public CreatureScript
                             Phase = 5;
                             break;
                         case 5:
-                            if (Creature* Razorscale = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_RAZORSCALE)))
+                            if (Creature* Razorscale = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(BOSS_RAZORSCALE) : 0))
                             {
                                 Razorscale->AI()->DoAction(ACTION_EVENT_START);
                                 me->SetInCombatWith(Razorscale);
@@ -844,12 +832,6 @@ class npc_devouring_flame : public CreatureScript
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_PACIFIED);
             }
 
-            void KilledUnit(Unit* who) OVERRIDE
-            {
-                if (who->GetTypeId() == TYPEID_PLAYER)
-                    me->GetInstanceScript()->SetData(DATA_CRITERIA_RAZORSCALE, 1);
-            }
-
             void Reset() OVERRIDE
             {
                 DoCast(SPELL_FLAME_GROUND);
@@ -878,12 +860,6 @@ class npc_darkrune_watcher : public CreatureScript
             {
                 ChainTimer = urand(10000, 15000);
                 LightTimer = urand(1000, 3000);
-            }
-
-            void KilledUnit(Unit* who) OVERRIDE
-            {
-                if (who->GetTypeId() == TYPEID_PLAYER)
-                    me->GetInstanceScript()->SetData(DATA_CRITERIA_RAZORSCALE, 1);
             }
 
             void UpdateAI(uint32 Diff) OVERRIDE
@@ -945,11 +921,6 @@ class npc_darkrune_guardian : public CreatureScript
                     killedByBreath = value;
             }
 
-            void KilledUnit(Unit* who) OVERRIDE
-            {
-                if (who->GetTypeId() == TYPEID_PLAYER)
-                    me->GetInstanceScript()->SetData(DATA_CRITERIA_RAZORSCALE, 1);
-            }
 
             void UpdateAI(uint32 Diff) OVERRIDE
             {
@@ -995,12 +966,6 @@ class npc_darkrune_sentinel : public CreatureScript
                 HeroicTimer = urand(4000, 8000);
                 WhirlTimer = urand(20000, 25000);
                 ShoutTimer = urand(15000, 30000);
-            }
-
-            void KilledUnit(Unit* who) OVERRIDE
-            {
-                if (who->GetTypeId() == TYPEID_PLAYER)
-                    me->GetInstanceScript()->SetData(DATA_CRITERIA_RAZORSCALE, 1);
             }
 
             void UpdateAI(uint32 Diff) OVERRIDE

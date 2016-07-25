@@ -186,7 +186,7 @@ public:
             if (target && me->IsWithinDistInMap(target, me->GetAttackDistance(target)))
             {
                 DoCast(target, SPELL_ATROPHY);
-                AttackStart(target);
+                me->AI()->AttackStart(target);
             }
         }
 

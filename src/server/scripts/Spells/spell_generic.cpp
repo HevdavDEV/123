@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2008-2014 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2014 Invisible WoW
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -37,8 +36,6 @@
 #include "SkillDiscovery.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
-#include "../Custom/Transmogrification/Transmogrification.h"
-#include "Vehicle.h"
 
 class spell_gen_absorb0_hitlimit1 : public SpellScriptLoader
 {
@@ -701,43 +698,6 @@ class spell_gen_chaos_blast : public SpellScriptLoader
         }
 };
 
-class spell_gen_shadowmeld : public SpellScriptLoader
- {
-     public:
-         spell_gen_shadowmeld() : SpellScriptLoader("spell_gen_shadowmeld") {}
- 
-         class spell_gen_shadowmeld_SpellScript : public SpellScript
-         {
-             PrepareSpellScript(spell_gen_shadowmeld_SpellScript);
- 
-             void HandleDummy(SpellEffIndex /*effIndex*/)
-             {
-                 Unit *caster = GetCaster();
-                 if (!caster)
-                     return;
- 
-                 caster->InterruptSpell(CURRENT_AUTOREPEAT_SPELL); // break Auto Shot and autohit
-                 caster->InterruptSpell(CURRENT_CHANNELED_SPELL); // break channeled spells
- 
-                 if (Player *pCaster = caster->ToPlayer()) // if is a creature instant exits combat, else check if someone in party is in combat in visibility distance
-                     pCaster->SendAttackSwingCancelAttack();
- 
-                 if (!caster->GetInstanceScript() || !caster->GetInstanceScript()->IsEncounterInProgress()) //Don't leave combat if you are in combat with a boss
-                     caster->CombatStop(); // isn't necessary to call AttackStop because is just called in CombatStop
-             }
- 
-             void Register()
-             {
-                 OnEffectHitTarget += SpellEffectFn(spell_gen_shadowmeld_SpellScript::HandleDummy, EFFECT_1, SPELL_EFFECT_DUMMY);
-             }
-         };
- 
-         SpellScript* GetSpellScript() const
-         {
-             return new spell_gen_shadowmeld_SpellScript();
-         }
- };
-
 class spell_gen_clone : public SpellScriptLoader
 {
     public:
@@ -849,12 +809,7 @@ class spell_gen_clone_weapon_aura : public SpellScriptLoader
                         if (Player* player = caster->ToPlayer())
                         {
                             if (Item* mainItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
-                                {
-                                if (uint32 entry = sTransmogrification->GetFakeEntry(mainItem->GetGUID()))
-                                    target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, entry);
-                                else
-                                    target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, mainItem->GetEntry());
-                                }
+                                target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, mainItem->GetEntry());
                         }
                         else
                             target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID));
@@ -868,10 +823,7 @@ class spell_gen_clone_weapon_aura : public SpellScriptLoader
                         if (Player* player = caster->ToPlayer())
                         {
                             if (Item* offItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
-                                if (uint32 entry = sTransmogrification->GetFakeEntry(offItem->GetGUID()))
-                                    target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, entry);
-                                else
-                                    target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, offItem->GetEntry());
+                                target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, offItem->GetEntry());
                         }
                         else
                             target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1));
@@ -884,10 +836,7 @@ class spell_gen_clone_weapon_aura : public SpellScriptLoader
                         if (Player* player = caster->ToPlayer())
                         {
                             if (Item* rangedItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED))
-                                if (uint32 entry = sTransmogrification->GetFakeEntry(rangedItem->GetGUID()))
-                                    target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, entry);
-                                else
-                                    target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, rangedItem->GetEntry());
+                                target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, rangedItem->GetEntry());
                         }
                         else
                             target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2));
@@ -1242,7 +1191,7 @@ class spell_gen_defend : public SpellScriptLoader
 
             void Register() OVERRIDE
             {
-                SpellInfo const* spell = sSpellMgr->EnsureSpellInfo(m_scriptSpellId);
+                SpellInfo const* spell = sSpellMgr->GetSpellInfo(m_scriptSpellId);
 
                 // Defend spells cast by NPCs (add visuals)
                 if (spell->Effects[EFFECT_0].ApplyAuraName == SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN)
@@ -2228,7 +2177,7 @@ class spell_gen_mounted_charge: public SpellScriptLoader
 
             void Register() OVERRIDE
             {
-                SpellInfo const* spell = sSpellMgr->EnsureSpellInfo(m_scriptSpellId);
+                SpellInfo const* spell = sSpellMgr->GetSpellInfo(m_scriptSpellId);
 
                 if (spell->HasEffect(SPELL_EFFECT_SCRIPT_EFFECT))
                     OnEffectHitTarget += SpellEffectFn(spell_gen_mounted_charge_SpellScript::HandleScriptEffect, EFFECT_FIRST_FOUND, SPELL_EFFECT_SCRIPT_EFFECT);
@@ -3051,65 +3000,22 @@ enum Replenishment
     SPELL_INFINITE_REPLENISHMENT    = 61782
 };
 
-class ReplenishmentCheck
-{
-public:
-    bool operator()(WorldObject* obj) const
-    {
-        if (Unit* target = obj->ToUnit())
-            return target->getPowerType() != POWER_MANA;
-
-        return true;
-    }
-};
-
 class spell_gen_replenishment : public SpellScriptLoader
 {
     public:
         spell_gen_replenishment() : SpellScriptLoader("spell_gen_replenishment") { }
 
-        class spell_gen_replenishment_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_gen_replenishment_SpellScript);
-
-            void RemoveInvalidTargets(std::list<WorldObject*>& targets)
-            {
-                // In arenas Replenishment may only affect the caster
-                if (Player* caster = GetCaster()->ToPlayer())
-                {
-                    if (caster->InArena())
-                    {
-                        targets.clear();
-                        targets.push_back(caster);
-                        return;
-                    }
-                }
-
-                targets.remove_if(ReplenishmentCheck());
-
-                uint8 const maxTargets = 10;
-
-                if (targets.size() > maxTargets)
-                {
-                    targets.sort(Trinity::PowerPctOrderPred(POWER_MANA));
-                    targets.resize(maxTargets);
-                }
-            }
-
-            void Register() OVERRIDE
-            {
-                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_gen_replenishment_SpellScript::RemoveInvalidTargets, EFFECT_ALL, TARGET_UNIT_CASTER_AREA_RAID);
-            }
-        };
-
-        SpellScript* GetSpellScript() const OVERRIDE
-        {
-            return new spell_gen_replenishment_SpellScript();
-        }
-
         class spell_gen_replenishment_AuraScript : public AuraScript
         {
             PrepareAuraScript(spell_gen_replenishment_AuraScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_REPLENISHMENT) ||
+                    !sSpellMgr->GetSpellInfo(SPELL_INFINITE_REPLENISHMENT))
+                    return false;
+                return true;
+            }
 
             bool Load() OVERRIDE
             {
@@ -3767,33 +3673,6 @@ class spell_gen_whisper_gulch_yogg_saron_whisper : public SpellScriptLoader
         }
 };
 
-class spell_gen_eject_all_passengers : public SpellScriptLoader
-{
-    public:
-        spell_gen_eject_all_passengers() : SpellScriptLoader("spell_gen_eject_all_passengers") { }
-
-        class spell_gen_eject_all_passengers_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_gen_eject_all_passengers_SpellScript);
-
-            void RemoveVehicleAuras()
-            {
-                if (Vehicle* vehicle = GetHitUnit()->GetVehicleKit())
-                    vehicle->RemoveAllPassengers();
-            }
-
-            void Register() OVERRIDE
-            {
-                AfterHit += SpellHitFn(spell_gen_eject_all_passengers_SpellScript::RemoveVehicleAuras);
-            }
-        };
-
-        SpellScript* GetSpellScript() const OVERRIDE
-        {
-            return new spell_gen_eject_all_passengers_SpellScript();
-        }
-};
-
 void AddSC_generic_spell_scripts()
 {
     new spell_gen_absorb0_hitlimit1();
@@ -3810,7 +3689,6 @@ void AddSC_generic_spell_scripts()
     new spell_gen_burn_brutallus();
     new spell_gen_cannibalize();
     new spell_gen_chaos_blast();
-    new spell_gen_shadowmeld();
     new spell_gen_clone();
     new spell_gen_clone_weapon();
     new spell_gen_clone_weapon_aura();
@@ -3877,5 +3755,4 @@ void AddSC_generic_spell_scripts()
     new spell_gen_vendor_bark_trigger();
     new spell_gen_wg_water();
     new spell_gen_whisper_gulch_yogg_saron_whisper();
-    new spell_gen_eject_all_passengers();
 }

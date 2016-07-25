@@ -55,9 +55,9 @@ public:
         return GetInstanceAI<boss_epochAI>(creature);
     }
 
-    struct boss_epochAI : public BossAI
+    struct boss_epochAI : public ScriptedAI
     {
-        boss_epochAI(Creature* creature) : BossAI(creature, DATA_EPOCH_EVENT)
+        boss_epochAI(Creature* creature) : ScriptedAI(creature)
         {
             instance = creature->GetInstanceScript();
         }
@@ -74,7 +74,6 @@ public:
 
         void Reset() OVERRIDE
         {
-            _Reset();
             uiStep = 1;
             uiStepTimer = 26000;
             uiCurseOfExertionTimer = 9300;
@@ -87,7 +86,6 @@ public:
 
         void EnterCombat(Unit* /*who*/) OVERRIDE
         {
-            _EnterCombat();
             Talk(SAY_AGGRO);
 
             instance->SetData(DATA_EPOCH_EVENT, IN_PROGRESS);
@@ -130,7 +128,6 @@ public:
 
         void JustDied(Unit* /*killer*/) OVERRIDE
         {
-            _JustDied();
             Talk(SAY_DEATH);
 
             instance->SetData(DATA_EPOCH_EVENT, DONE);

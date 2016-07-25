@@ -1328,17 +1328,6 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                     }
                 }
                 break;
-            case SPELLFAMILY_WARLOCK:
-                if (!caster)
-                    break;
-                if (Unit *owner = caster->GetOwner())
-                    if (owner->HasAura(56250)) // Glyph of Succubus
-                    {
-                        target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE, 0, target->GetAura(32409)); // SW:D shall not be removed.
-                        target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE_PERCENT);
-                        target->RemoveAurasByType(SPELL_AURA_PERIODIC_LEECH);
-                    }
-                break;
         }
     }
     // mods at aura remove
@@ -1394,15 +1383,10 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                 }
                 if (!caster)
                     break;
-<<<<<<< HEAD
                 // Ice barrier - Shattered Barrier is only casted if the auraeffect has reached 0 amount
                 if ((removeMode == AURA_REMOVE_BY_ENEMY_SPELL) &&
 					(GetSpellInfo()->SpellFamilyFlags[EFFECT_1] & 0x00000001) &&
 					(GetEffect(EFFECT_0)->GetAmount() <= 0))
-=======
-                // Ice barrier - dispel/absorb remove
-                if (removeMode == AURA_REMOVE_BY_ENEMY_SPELL  && GetSpellInfo()->SpellFamilyFlags[1] & 0x1 && GetEffect(EFFECT_0)->GetAmount() <= 0)
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
                 {
                     // Shattered Barrier
 					if (AuraEffect * aurEff = target->GetDummyAuraEffect(SPELLFAMILY_MAGE, 2945, EFFECT_0))
@@ -1440,7 +1424,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                 if (!caster)
                     break;
                 // Improved Fear
-                if (GetMaxDuration() && GetSpellInfo()->SpellFamilyFlags[1] & 0x00000400)
+                if (GetSpellInfo()->SpellFamilyFlags[1] & 0x00000400)
                 {
                     if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 98, 0))
                     {
@@ -1546,8 +1530,11 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                             player->RemoveSpellCooldown(GetSpellInfo()->Id, true);
                             player->AddSpellCooldown(GetSpellInfo()->Id, 0, uint32(time(NULL) + aurEff->GetAmount()));
 
-                            WorldPacket data;
-                            player->BuildCooldownPacket(data, SPELL_COOLDOWN_FLAG_NONE, GetSpellInfo()->Id, aurEff->GetAmount()*IN_MILLISECONDS);
+                            WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4+4);
+                            data << uint64(player->GetGUID());
+                            data << uint8(0x0);                                     // flags (0x1, 0x2)
+                            data << uint32(GetSpellInfo()->Id);
+                            data << uint32(aurEff->GetAmount()*IN_MILLISECONDS);
                             player->SendDirectMessage(&data);
                         }
                         break;

@@ -78,15 +78,14 @@ public:
             EnrageTimer = 600000;
             enraged = false;
 
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_AZGALOREVENT, NOT_STARTED);
         }
 
         void EnterCombat(Unit* /*who*/) OVERRIDE
         {
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_AZGALOREVENT, IN_PROGRESS);
-
             Talk(SAY_ONAGGRO);
         }
 
@@ -108,7 +107,7 @@ public:
         void JustDied(Unit* killer) OVERRIDE
         {
             hyjal_trashAI::JustDied(killer);
-            if (IsEvent)
+            if (instance && IsEvent)
                 instance->SetData(DATA_AZGALOREVENT, DONE);
             Talk(SAY_ONDEATH);
         }
@@ -191,9 +190,6 @@ public:
     {
         npc_lesser_doomguardAI(Creature* creature) : hyjal_trashAI(creature)
         {
-            CrippleTimer = 50000;
-            WarstompTimer = 10000;
-            CheckTimer = 5000;
             instance = creature->GetInstanceScript();
             AzgalorGUID = instance->GetData64(DATA_AZGALOR);
         }
@@ -241,7 +237,7 @@ public:
             {
                 if (AzgalorGUID)
                 {
-                    Creature* boss = ObjectAccessor::GetCreature(*me, AzgalorGUID);
+                    Creature* boss = Unit::GetCreature((*me), AzgalorGUID);
                     if (!boss || (boss && boss->isDead()))
                     {
                         me->setDeathState(JUST_DIED);

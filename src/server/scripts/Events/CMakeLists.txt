@@ -11,7 +11,6 @@
 set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
   Events/childrens_week.cpp
-  Events/midsummer.cpp
 )
 
 message("  -> Prepared: Events")

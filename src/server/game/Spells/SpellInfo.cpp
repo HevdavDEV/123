@@ -417,9 +417,7 @@ int32 SpellEffectInfo::CalcValue(Unit const* caster, int32 const* bp, Unit const
             level = int32(_spellInfo->MaxLevel);
         else if (level < int32(_spellInfo->BaseLevel))
             level = int32(_spellInfo->BaseLevel);
-        if (!_spellInfo->IsPassive())
-        if (!_spellInfo->IsPassive()) // not sure if it's good for all cases, fix for Magic Absorption
-            level -= int32(_spellInfo->SpellLevel);
+        level -= int32(_spellInfo->SpellLevel);
         basePoints += int32(level * basePointsPerLevel);
     }
 
@@ -2108,7 +2106,7 @@ uint32 SpellInfo::CalcCastTime(Spell* spell /*= NULL*/) const
 
     if (spell)
         spell->GetCaster()->ModSpellCastTime(this, castTime, spell);
-		
+
     if (Attributes & SPELL_ATTR0_REQ_AMMO && (!IsAutoRepeatRangedSpell()))
         castTime += 500;
 

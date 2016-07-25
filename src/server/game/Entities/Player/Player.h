@@ -410,7 +410,6 @@ enum PlayerFlags
     PLAYER_FLAGS_UNK31             = 0x80000000
 };
 
-<<<<<<< HEAD
 #define PLAYER_TITLE_MASK_ALLIANCE_PVP \
 (PLAYER_TITLE_PRIVATE | PLAYER_TITLE_CORPORAL | \
 PLAYER_TITLE_SERGEANT_A | PLAYER_TITLE_MASTER_SERGEANT | \
@@ -431,28 +430,6 @@ PLAYER_TITLE_WARLORD | PLAYER_TITLE_HIGH_WARLORD)
 
 #define PLAYER_TITLE_MASK_ALL_PVP \
 (PLAYER_TITLE_MASK_ALLIANCE_PVP | PLAYER_TITLE_MASK_HORDE_PVP)
-=======
-#define PLAYER_TITLE_MASK_ALLIANCE_PVP             \
-    (PLAYER_TITLE_PRIVATE | PLAYER_TITLE_CORPORAL |  \
-      PLAYER_TITLE_SERGEANT_A | PLAYER_TITLE_MASTER_SERGEANT | \
-      PLAYER_TITLE_SERGEANT_MAJOR | PLAYER_TITLE_KNIGHT | \
-      PLAYER_TITLE_KNIGHT_LIEUTENANT | PLAYER_TITLE_KNIGHT_CAPTAIN | \
-      PLAYER_TITLE_KNIGHT_CHAMPION | PLAYER_TITLE_LIEUTENANT_COMMANDER | \
-      PLAYER_TITLE_COMMANDER | PLAYER_TITLE_MARSHAL | \
-      PLAYER_TITLE_FIELD_MARSHAL | PLAYER_TITLE_GRAND_MARSHAL)
-
-#define PLAYER_TITLE_MASK_HORDE_PVP                           \
-    (PLAYER_TITLE_SCOUT | PLAYER_TITLE_GRUNT |  \
-      PLAYER_TITLE_SERGEANT_H | PLAYER_TITLE_SENIOR_SERGEANT | \
-      PLAYER_TITLE_FIRST_SERGEANT | PLAYER_TITLE_STONE_GUARD | \
-      PLAYER_TITLE_BLOOD_GUARD | PLAYER_TITLE_LEGIONNAIRE | \
-      PLAYER_TITLE_CENTURION | PLAYER_TITLE_CHAMPION | \
-      PLAYER_TITLE_LIEUTENANT_GENERAL | PLAYER_TITLE_GENERAL | \
-      PLAYER_TITLE_WARLORD | PLAYER_TITLE_HIGH_WARLORD)
-
-#define PLAYER_TITLE_MASK_ALL_PVP  \
-    (PLAYER_TITLE_MASK_ALLIANCE_PVP | PLAYER_TITLE_MASK_HORDE_PVP)
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
 
 // used for PLAYER__FIELD_KNOWN_TITLES field (uint64), (1<<bit_index) without (-1)
 // can't use enum for uint64 values
@@ -886,7 +863,6 @@ struct AccessRequirement
 {
     uint8  levelMin;
     uint8  levelMax;
-    uint16 item_level;
     uint32 item;
     uint32 item2;
     uint32 quest_A;
@@ -1105,31 +1081,6 @@ private:
     bool _isPvP;
 };
 
-<<<<<<< HEAD
-// challenge script by SymbolixDEV
-enum CustomSkirmishStatus {
-    SKIRMISH_NONE       = 0,
-    SKIRMISH_PREPEAR,
-    SKIRMISH_JOINED
-};
-// challenge script by SymbolixDEV
-=======
-/* World of Warcraft Armory */
-struct WowarmoryFeedEntry {
-    uint32 guid;         // Player GUID
-    time_t date;         // Log date
-    uint32 type;         // TYPE_ACHIEVEMENT_FEED, TYPE_ITEM_FEED, TYPE_BOSS_FEED
-    uint32 data;         // TYPE_ITEM_FEED: item_entry, TYPE_BOSS_FEED: creature_entry
-    uint32 item_guid;    // Can be 0
-    uint32 item_quality; // Can be 0
-    uint8  difficulty;   // Can be 0
-    int    counter;      // Can be 0
-};
-
-typedef std::vector<WowarmoryFeedEntry> WowarmoryFeeds;
-/* World of Warcraft Armory */
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
-
 class Player : public Unit, public GridObject<Player>
 {
     friend class WorldSession;
@@ -1139,7 +1090,6 @@ class Player : public Unit, public GridObject<Player>
         explicit Player(WorldSession* session);
         ~Player();
 
-<<<<<<< HEAD
         //CROSSFACION BG START
 private:
     bool m_ForgetBGPlayers;
@@ -1169,10 +1119,6 @@ public:
     FakePlayers m_FakePlayers;
     //CROSSFACION BG END
 
-=======
-        //AnticheatData anticheatData;
-        
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
         void CleanupsBeforeDelete(bool finalCleanup = true);
 
         void AddToWorld();
@@ -1257,10 +1203,7 @@ public:
         void GiveLevel(uint8 level);
 
         void InitStatsForLevel(bool reapplyMods = false);
-        // challenge script by SymbolixDEV
-        CustomSkirmishStatus getSkirmishStatus(ArenaType type) { return skirmishStatus[type]; }
-        void setSkirmishStatus(ArenaType type, CustomSkirmishStatus status) { skirmishStatus[type] = status; }
-        // challenge script by SymbolixDEV
+
         // .cheat command related
         bool GetCommandStatus(uint32 command) const { return _activeCheats & command; }
         void SetCommandStatusOn(uint32 command) { _activeCheats |= command; }
@@ -1409,7 +1352,6 @@ public:
         uint32 GetArmorProficiency() const { return m_ArmorProficiency; }
         bool IsUseEquipedWeapon(bool mainhand) const;
         bool IsTwoHandUsed() const;
-        bool HasTwoHandWeaponInOneHand() const;
         void SendNewItem(Item* item, uint32 count, bool received, bool created, bool broadcast = false);
         bool BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot);
         bool _StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot, int32 price, ItemTemplate const* pProto, Creature* pVendor, VendorItem const* crItem, bool bStore);
@@ -1500,11 +1442,9 @@ public:
         bool TakeQuestSourceItem(uint32 questId, bool msg);
         bool GetQuestRewardStatus(uint32 quest_id) const;
         QuestStatus GetQuestStatus(uint32 quest_id) const;
-        void SetQuestStatus(uint32 questId, QuestStatus status, bool update = true);
-        void RemoveActiveQuest(uint32 questId, bool update = true);
-        void RemoveRewardedQuest(uint32 questId, bool update = true);
-        void SendQuestUpdate(uint32 questId);
-        QuestGiverStatus GetQuestDialogStatus(Object* questGiver);
+        void SetQuestStatus(uint32 quest_id, QuestStatus status);
+        void RemoveActiveQuest(uint32 quest_id);
+        void RemoveRewardedQuest(uint32 quest_id);
 
         void SetDailyQuestStatus(uint32 quest_id);
         void SetWeeklyQuestStatus(uint32 quest_id);
@@ -2012,7 +1952,7 @@ public:
         bool IsAtRecruitAFriendDistance(WorldObject const* pOther) const;
         void RewardPlayerAndGroupAtKill(Unit* victim, bool isBattleGround);
         void RewardPlayerAndGroupAtEvent(uint32 creature_id, WorldObject* pRewardSource);
-        bool isHonorOrXPTarget(Unit* victim) const;
+        bool isHonorOrXPTarget(Unit* victim);
 
         bool GetsRecruitAFriendBonus(bool forXP);
         uint8 GetGrantableLevels() { return m_grantableLevels; }
@@ -2040,11 +1980,7 @@ public:
         void ModifyHonorPoints(int32 value, SQLTransaction* trans = NULL);      //! If trans is specified, honor save query will be added to trans
         void ModifyArenaPoints(int32 value, SQLTransaction* trans = NULL);      //! If trans is specified, arena point save query will be added to trans
         uint32 GetMaxPersonalArenaRatingRequirement(uint32 minarenaslot) const;
-<<<<<<< HEAD
 		void UpdateKnownTitles();
-=======
-        void UpdateKnownTitles();
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
         void SetHonorPoints(uint32 value);
         void SetArenaPoints(uint32 value);
 
@@ -2285,12 +2221,6 @@ public:
         void SendCinematicStart(uint32 CinematicSequenceId);
         void SendMovieStart(uint32 MovieId);
 
-        /* World of Warcraft Armory */
-        void CreateWowarmoryFeed(uint32 type, uint32 data, uint32 item_guid, uint32 item_quality);
-        void InitWowarmoryFeeds();
-        /* World of Warcraft Armory */
-
-
         /*********************************************************/
         /***                 INSTANCE SYSTEM                   ***/
         /*********************************************************/
@@ -2392,8 +2322,8 @@ public:
         void RemoveTimedAchievement(AchievementCriteriaTimedTypes type, uint32 entry);
         void CompletedAchievement(AchievementEntry const* entry);
 
-        bool HasTitle(uint32 bitIndex) const;
-        bool HasTitle(CharTitlesEntry const* title) const { return HasTitle(title->bit_index); }
+        bool HasTitle(uint32 bitIndex);
+        bool HasTitle(CharTitlesEntry const* title) { return HasTitle(title->bit_index); }
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
         //bool isActiveObject() const { return true; }
@@ -2731,11 +2661,6 @@ public:
         bool m_bCanDelayTeleport;
         bool m_bHasDelayedTeleport;
 
-        // challenge script by SymbolixDEV
-        // Specific skirmish data
-        CustomSkirmishStatus skirmishStatus[ARENA_TYPE_5v5 + 1];
-        // challenge script by SymbolixDEV
-
         // Temporary removed pet cache
         uint32 m_temporaryUnsummonedPetNumber;
         uint32 m_oldpetspell;
@@ -2751,8 +2676,6 @@ public:
         uint32 m_timeSyncTimer;
         uint32 m_timeSyncClient;
         uint32 m_timeSyncServer;
-        // World of Warcraft Armory Feeds
-        WowarmoryFeeds m_wowarmory_feeds;
 
         InstanceTimeMap _instanceResetTimes;
         uint32 _pendingBindId;

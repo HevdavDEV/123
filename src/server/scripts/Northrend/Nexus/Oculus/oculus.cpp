@@ -375,16 +375,27 @@ class spell_oculus_call_ruby_emerald_amber_drake : public SpellScriptLoader
         {
             PrepareSpellScript(spell_oculus_call_ruby_emerald_amber_drake_SpellScript);
 
-            void SetDest(SpellDestination& dest)
+            void ChangeSummonPos(SpellEffIndex /*effIndex*/)
             {
                 // Adjust effect summon position
-                Position const offset = { 0.0f, 0.0f, 12.0f, 0.0f };
-                dest.RelocateOffset(offset);
+                WorldLocation summonPos = *GetExplTargetDest();
+                Position offset = { 0.0f, 0.0f, 12.0f, 0.0f };
+                summonPos.RelocateOffset(offset);
+                SetExplTargetDest(summonPos);
+                GetHitDest()->RelocateOffset(offset);
+            }
+
+            void ModDestHeight(SpellEffIndex /*effIndex*/)
+            {
+                // Used to cast visual effect at proper position
+                Position offset = { 0.0f, 0.0f, 12.0f, 0.0f };
+                const_cast<WorldLocation*>(GetExplTargetDest())->RelocateOffset(offset);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_oculus_call_ruby_emerald_amber_drake_SpellScript::SetDest, EFFECT_0, TARGET_DEST_CASTER_FRONT);
+                OnEffectHit += SpellEffectFn(spell_oculus_call_ruby_emerald_amber_drake_SpellScript::ChangeSummonPos, EFFECT_0, SPELL_EFFECT_SUMMON);
+                OnEffectLaunch += SpellEffectFn(spell_oculus_call_ruby_emerald_amber_drake_SpellScript::ModDestHeight, EFFECT_0, SPELL_EFFECT_SUMMON);
             }
         };
 

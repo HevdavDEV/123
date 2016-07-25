@@ -352,7 +352,6 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
     // 0x20
     if (flags & UPDATEFLAG_LIVING)
     {
-        ASSERT(unit);
         unit->BuildMovementPacket(data);
 
         *data << unit->GetSpeed(MOVE_WALK)
@@ -373,7 +372,6 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
     {
         if (flags & UPDATEFLAG_POSITION)
         {
-            ASSERT(object);
             Transport* transport = object->GetTransport();
 
             if (transport)
@@ -416,7 +414,6 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
             // 0x40
             if (flags & UPDATEFLAG_STATIONARY_POSITION)
             {
-                ASSERT(object);
                 *data << object->GetStationaryX();
                 *data << object->GetStationaryY();
                 *data << object->GetStationaryZ();
@@ -464,7 +461,6 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
     // 0x4
     if (flags & UPDATEFLAG_HAS_TARGET)
     {
-        ASSERT(unit);
         if (Unit* victim = unit->GetVictim())
             data->append(victim->GetPackGUID());
         else
@@ -475,12 +471,7 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
     if (flags & UPDATEFLAG_TRANSPORT)
     {
         GameObject const* go = ToGameObject();
-        /** @TODO Use IsTransport() to also handle type 11 (TRANSPORT)
-            Currently grid objects are not updated if there are no nearby players,
-            this causes clients to receive different PathProgress
-            resulting in players seeing the object in a different position
-        */
-        if (go && go->ToTransport())
+        if (go && go->IsTransport())
             *data << uint32(go->GetGOValue()->Transport.PathProgress);
         else
             *data << uint32(getMSTime());
@@ -490,9 +481,6 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 flags) const
     if (flags & UPDATEFLAG_VEHICLE)
     {
         /// @todo Allow players to aquire this updateflag.
-        ASSERT(unit);
-        ASSERT(unit->GetVehicleKit());
-        ASSERT(unit->GetVehicleKit()->GetVehicleInfo());
         *data << uint32(unit->GetVehicleKit()->GetVehicleInfo()->m_ID);
         if (unit->HasUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT))
             *data << float(unit->GetTransOffsetO());
@@ -753,7 +741,7 @@ void Object::SetByteValue(uint16 index, uint8 offset, uint8 value)
 {
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
-    if (offset > 3)
+    if (offset > 4)
     {
         TC_LOG_ERROR("misc", "Object::SetByteValue: wrong offset %u", offset);
         return;
@@ -777,7 +765,7 @@ void Object::SetUInt16Value(uint16 index, uint8 offset, uint16 value)
 {
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
-    if (offset > 1)
+    if (offset > 2)
     {
         TC_LOG_ERROR("misc", "Object::SetUInt16Value: wrong offset %u", offset);
         return;
@@ -917,7 +905,7 @@ void Object::SetByteFlag(uint16 index, uint8 offset, uint8 newFlag)
 {
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
-    if (offset > 3)
+    if (offset > 4)
     {
         TC_LOG_ERROR("misc", "Object::SetByteFlag: wrong offset %u", offset);
         return;
@@ -940,7 +928,7 @@ void Object::RemoveByteFlag(uint16 index, uint8 offset, uint8 oldFlag)
 {
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
-    if (offset > 3)
+    if (offset > 4)
     {
         TC_LOG_ERROR("misc", "Object::RemoveByteFlag: wrong offset %u", offset);
         return;
@@ -1249,18 +1237,11 @@ bool WorldObject::IsWithinLOSInMap(const WorldObject* obj) const
 
     // Hack for ice tomb's gameobject
     if (obj->GetTypeId() == TYPEID_UNIT)
-<<<<<<< HEAD
         if (obj->GetEntry() == 36980 || obj->GetEntry() == 38320 || obj->GetEntry() == 38321 || obj->GetEntry() == 38322 /* Ice Tomb */)
             return true;
 
     if (GetTypeId() == TYPEID_UNIT)
         if (GetEntry() == 36980 || GetEntry() == 38320 || GetEntry() == 38321 || GetEntry() == 38322 /* Ice Tomb */)
-=======
-        if (obj->GetEntry() == 36980 /* Ice Tomb */)
-            return true;
-    if (GetTypeId() == TYPEID_UNIT)
-        if (GetEntry() == 36980 /* Ice Tomb */)
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
             return true;
 
     float ox, oy, oz;
@@ -1582,9 +1563,9 @@ void WorldObject::GetRandomPoint(const Position &srcPos, float distance, Positio
 
 void WorldObject::UpdateGroundPositionZ(float x, float y, float &z) const
 {
-    float new_z = GetMap()->GetHeight(GetPhaseMask(), x, y, z + 2.0f, true);
+    float new_z = GetBaseMap()->GetHeight(GetPhaseMask(), x, y, z, true);
     if (new_z > INVALID_HEIGHT)
-        z = new_z + 0.05f;                                   // just to be sure that we are not a few pixel under the surface
+        z = new_z+ 0.05f;                                   // just to be sure that we are not a few pixel under the surface
 }
 
 void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
@@ -1604,8 +1585,8 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
                 bool canSwim = ToCreature()->CanSwim();
                 float ground_z = z;
                 float max_z = canSwim
-                    ? GetMap()->GetWaterOrGroundLevel(x, y, z, &ground_z, !ToUnit()->HasAuraType(SPELL_AURA_WATER_WALK))
-                    : ((ground_z = GetMap()->GetHeight(GetPhaseMask(), x, y, z, true)));
+                    ? GetBaseMap()->GetWaterOrGroundLevel(x, y, z, &ground_z, !ToUnit()->HasAuraType(SPELL_AURA_WATER_WALK))
+                    : ((ground_z = GetBaseMap()->GetHeight(GetPhaseMask(), x, y, z, true)));
                 if (max_z > INVALID_HEIGHT)
                 {
                     if (z > max_z)
@@ -1616,7 +1597,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
             }
             else
             {
-                float ground_z = GetMap()->GetHeight(GetPhaseMask(), x, y, z, true);
+                float ground_z = GetBaseMap()->GetHeight(GetPhaseMask(), x, y, z, true);
                 if (z < ground_z)
                     z = ground_z;
             }
@@ -1628,7 +1609,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
             if (!ToPlayer()->CanFly())
             {
                 float ground_z = z;
-                float max_z = GetMap()->GetWaterOrGroundLevel(x, y, z, &ground_z, !ToUnit()->HasAuraType(SPELL_AURA_WATER_WALK));
+                float max_z = GetBaseMap()->GetWaterOrGroundLevel(x, y, z, &ground_z, !ToUnit()->HasAuraType(SPELL_AURA_WATER_WALK));
                 if (max_z > INVALID_HEIGHT)
                 {
                     if (z > max_z)
@@ -1639,7 +1620,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
             }
             else
             {
-                float ground_z = GetMap()->GetHeight(GetPhaseMask(), x, y, z, true);
+                float ground_z = GetBaseMap()->GetHeight(GetPhaseMask(), x, y, z, true);
                 if (z < ground_z)
                     z = ground_z;
             }
@@ -1647,7 +1628,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float &z) const
         }
         default:
         {
-            float ground_z = GetMap()->GetHeight(GetPhaseMask(), x, y, z, true);
+            float ground_z = GetBaseMap()->GetHeight(GetPhaseMask(), x, y, z, true);
             if (ground_z > INVALID_HEIGHT)
                 z = ground_z;
             break;

@@ -24,7 +24,6 @@
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "ulduar.h"
-#include "AchievementMgr.h"
 
 /* @todo Achievements
           Storm Cloud (Shaman ability)
@@ -77,8 +76,6 @@ enum HodirSpells
     // Shamans
     SPELL_LAVA_BURST                             = 61924,
     SPELL_STORM_CLOUD                            = 65123,
-    SPELL_STORM_POWER_10                         = 63711,
-    SPELL_STORM_POWER_25                         = 65134,
 
     // Mages
     SPELL_FIREBALL                               = 61909,
@@ -140,11 +137,16 @@ enum HodirActions
     ACTION_CHEESE_THE_FREEZE                     = 2,
 };
 
-#define ACHIEVEMENT_CHEESE_THE_FREEZE            RAID_MODE<uint32>(2961, 2962)
-#define ACHIEVEMENT_GETTING_COLD_IN_HERE         RAID_MODE<uint32>(2967, 2968)
-#define ACHIEVEMENT_THIS_CACHE_WAS_RARE          RAID_MODE<uint32>(3182, 3184)
-#define ACHIEVEMENT_COOLEST_FRIENDS              RAID_MODE<uint32>(2963, 2965)
+#define ACHIEVEMENT_CHEESE_THE_FREEZE            RAID_MODE<uint8>(2961, 2962)
+#define ACHIEVEMENT_GETTING_COLD_IN_HERE         RAID_MODE<uint8>(2967, 2968)
+#define ACHIEVEMENT_THIS_CACHE_WAS_RARE          RAID_MODE<uint8>(3182, 3184)
+#define ACHIEVEMENT_COOLEST_FRIENDS              RAID_MODE<uint8>(2963, 2965)
 #define FRIENDS_COUNT                            RAID_MODE<uint8>(4, 8)
+
+enum Misc
+{
+    DATA_GETTING_COLD_IN_HERE                    = 29672968 // 2967, 2968 are achievement IDs
+};
 
 Position const SummonPositions[8] =
 {
@@ -225,7 +227,7 @@ class npc_flash_freeze : public CreatureScript
                     // Prevents to have Ice Block on other place than target is
                     me->NearTeleportTo(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), target->GetOrientation());
                     if (target->GetTypeId() == TYPEID_PLAYER)
-                        if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_HODIR)))
+                        if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(BOSS_HODIR) : 0))
                             Hodir->AI()->DoAction(ACTION_CHEESE_THE_FREEZE);
                 }
             }
@@ -277,7 +279,7 @@ class npc_ice_block : public CreatureScript
                 {
                     Helper->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_STUNNED | UNIT_FLAG_PACIFIED);
 
-                    if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_HODIR)))
+                    if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(BOSS_HODIR) : 0))
                     {
                         if (!Hodir->IsInCombat())
                         {
@@ -317,8 +319,6 @@ class boss_hodir : public CreatureScript
             bool iHaveTheCoolestFriends;
             bool iCouldSayThatThisCacheWasRare;
 
-            std::list<Creature*> flashfreeze;
-
             void Reset() OVERRIDE
             {
                 _Reset();
@@ -352,10 +352,7 @@ class boss_hodir : public CreatureScript
             void KilledUnit(Unit* who) OVERRIDE
             {
                 if (who->GetTypeId() == TYPEID_PLAYER)
-                {
                     Talk(SAY_SLAY);
-                    instance->SetData(DATA_CRITERIA_HODIR, 1);
-                }
             }
 
             void DamageTaken(Unit* /*who*/, uint32& damage) OVERRIDE
@@ -364,14 +361,14 @@ class boss_hodir : public CreatureScript
                 {
                     damage = 0;
                     Talk(SAY_DEATH);
-                    
                     if (iCouldSayThatThisCacheWasRare)
                         instance->SetData(DATA_HODIR_RARE_CACHE, 1);
-                    
+
                     me->RemoveAllAuras();
                     me->RemoveAllAttackers();
                     me->AttackStop();
-                    me->SetReactState(REACT_PASSIVE);                   
+                    me->SetReactState(REACT_PASSIVE);
+                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE);
                     me->InterruptNonMeleeSpells(true);
                     me->StopMoving();
                     me->GetMotionMaster()->Clear();
@@ -379,16 +376,11 @@ class boss_hodir : public CreatureScript
                     me->SetControlled(true, UNIT_STATE_STUNNED);
                     me->CombatStop(true);
 
-                    DoCastAOE(SPELL_KILL_CREDIT);
                     me->setFaction(35);
                     me->DespawnOrUnsummon(10000);
 
-                    GetCreatureListWithEntryInGrid(flashfreeze, me, NPC_FLASH_FREEZE, 500.0f);
-                    GetCreatureListWithEntryInGrid(flashfreeze, me, NPC_ICE_BLOCK, 500.0f);
-                    for (std::list<Creature*>::const_iterator itr = flashfreeze.begin(); itr != flashfreeze.end(); ++itr)
-                        (*itr)->DisappearAndDie();
+                    DoCastAOE(SPELL_KILL_CREDIT);
 
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE);
                     _JustDied();
                 }
             }
@@ -463,7 +455,7 @@ class boss_hodir : public CreatureScript
                         if (Unit* target = ObjectAccessor::GetUnit(*me, (*itr)->getUnitGuid()))
                             if (Aura* BitingColdAura = target->GetAura(SPELL_BITING_COLD_TRIGGERED))
                                 if ((target->GetTypeId() == TYPEID_PLAYER) && (BitingColdAura->GetStackAmount() > 2))
-                                        SetData(DATA_GETTING_COLD_IN_HERE, 0);
+                                        me->AI()->SetData(DATA_GETTING_COLD_IN_HERE, 0);
                     gettingColdInHereTimer = 1000;
                 }
                 else
@@ -485,20 +477,6 @@ class boss_hodir : public CreatureScript
                     default:
                         break;
                 }
-            }
-
-            uint32 GetData(uint32 type) const OVERRIDE
-            {
-                switch (type)
-                {
-                    case DATA_CHEESE_THE_FREEZE:
-                        return cheeseTheFreeze;
-                    case DATA_COOLEST_FRIENDS:
-                        return iHaveTheCoolestFriends;
-                    case DATA_GETTING_COLD_IN_HERE:
-                        return gettingColdInHere;
-                }
-                return 0;
             }
 
             void FlashFreeze()
@@ -680,7 +658,7 @@ class npc_hodir_priest : public CreatureScript
 
             void JustDied(Unit* /*killer*/) OVERRIDE
              {
-                if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_HODIR)))
+                if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(BOSS_HODIR) : 0))
                     Hodir->AI()->DoAction(ACTION_I_HAVE_THE_COOLEST_FRIENDS);
               }
 
@@ -741,10 +719,10 @@ class npc_hodir_shaman : public CreatureScript
             }
 
             void JustDied(Unit* /*killer*/) OVERRIDE
-            {
-                if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_HODIR)))
+             {
+                if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(BOSS_HODIR) : 0))
                     Hodir->AI()->DoAction(ACTION_I_HAVE_THE_COOLEST_FRIENDS);
-            }
+              }
 
         private:
             InstanceScript* instance;
@@ -803,7 +781,7 @@ class npc_hodir_druid : public CreatureScript
 
             void JustDied(Unit* /*killer*/) OVERRIDE
              {
-                if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_HODIR)))
+                if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(BOSS_HODIR) : 0))
                     Hodir->AI()->DoAction(ACTION_I_HAVE_THE_COOLEST_FRIENDS);
               }
 
@@ -883,7 +861,7 @@ class npc_hodir_mage : public CreatureScript
 
             void JustDied(Unit* /*killer*/) OVERRIDE
              {
-                  if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_HODIR)))
+                  if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(BOSS_HODIR) : 0))
                     Hodir->AI()->DoAction(ACTION_I_HAVE_THE_COOLEST_FRIENDS);
               }
 
@@ -1023,108 +1001,6 @@ public:
     }
 };
 
-class TW_spell_starlight : public SpellScriptLoader
-{
-public:
-    TW_spell_starlight() : SpellScriptLoader("TW_spell_starlight") { }
-
-    class TW_spell_starlight_AuraScript : public AuraScript
-    {
-        PrepareAuraScript(TW_spell_starlight_AuraScript);
-
-        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            if (Unit* target = GetTarget())
-                if (target->GetTypeId() == TYPEID_PLAYER)   
-                {
-                    AchievementEntry const* achiev = target->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL 
-                        ? sAchievementStore.LookupEntry(2969) : sAchievementStore.LookupEntry(2970);
-
-                    if (target->HasAura(62821) && (target->HasAura(65134) || target->HasAura(63711)))                                                 
-                        target->ToPlayer()->CompletedAchievement(achiev);
-                }
-        }
-
-        void Register() OVERRIDE
-        {
-            AfterEffectApply += AuraEffectApplyFn(TW_spell_starlight_AuraScript::OnApply, EFFECT_0, SPELL_AURA_MELEE_SLOW, AURA_EFFECT_HANDLE_REAL);
-        }
-    };
-
-    AuraScript* GetAuraScript() const OVERRIDE
-    {
-        return new TW_spell_starlight_AuraScript();
-    }
-};
-
-class TW_spell_toasty_fire : public SpellScriptLoader
-{
-public:
-    TW_spell_toasty_fire() : SpellScriptLoader("TW_spell_toasty_fire") { }
-
-    class TW_spell_toasty_fire_AuraScript : public AuraScript
-    {
-        PrepareAuraScript(TW_spell_toasty_fire_AuraScript);
-
-        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            if (Unit* target = GetTarget())
-                if (target->GetTypeId() == TYPEID_PLAYER)   
-                {
-                    AchievementEntry const* achiev = target->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL 
-                        ? sAchievementStore.LookupEntry(2969) : sAchievementStore.LookupEntry(2970);
-
-                    if ((target->HasAura(65134) || target->HasAura(63711)) && target->HasAura(62807))                       
-                        target->ToPlayer()->CompletedAchievement(achiev);
-                }
-        }
-
-        void Register() OVERRIDE
-        {
-            AfterEffectApply += AuraEffectApplyFn(TW_spell_toasty_fire_AuraScript::OnApply, EFFECT_0, SPELL_AURA_MOD_STAT, AURA_EFFECT_HANDLE_REAL);
-        }
-    };
-
-    AuraScript* GetAuraScript() const OVERRIDE
-    {
-        return new TW_spell_toasty_fire_AuraScript();
-    }
-};
-
-class TW_spell_storm_power : public SpellScriptLoader
-{
-public:
-    TW_spell_storm_power() : SpellScriptLoader("TW_spell_storm_power") { }
-
-    class TW_spell_storm_power_AuraScript : public AuraScript
-    {
-        PrepareAuraScript(TW_spell_storm_power_AuraScript);
-
-        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            if (Unit* target = GetTarget())
-                if (target->GetTypeId() == TYPEID_PLAYER)   
-                {
-                    AchievementEntry const* achiev = target->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL 
-                        ? sAchievementStore.LookupEntry(2969) : sAchievementStore.LookupEntry(2970);
-
-                    if (target->HasAura(62821) && target->HasAura(62807))                   
-                        target->ToPlayer()->CompletedAchievement(achiev);
-                }
-        }
-
-        void Register() OVERRIDE
-        {
-            AfterEffectApply += AuraEffectApplyFn(TW_spell_storm_power_AuraScript::OnApply, EFFECT_0, SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, AURA_EFFECT_HANDLE_REAL);           
-        }
-    };
-
-    AuraScript* GetAuraScript() const OVERRIDE
-    {
-        return new TW_spell_storm_power_AuraScript();
-    }
-};
-
 void AddSC_boss_hodir()
 {
     new boss_hodir();
@@ -1139,7 +1015,4 @@ void AddSC_boss_hodir()
     new npc_flash_freeze();
     new spell_biting_cold();
     new spell_biting_cold_dot();
-    new TW_spell_starlight();
-    new TW_spell_toasty_fire();    
-    new TW_spell_storm_power();
 }

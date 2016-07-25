@@ -682,40 +682,12 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_DEBUG_PHASE                            = 776, // only 4.3.4
     RBAC_PERM_COMMAND_MAILBOX                                = 777,
 
-    RBAC_PERM_COMMAND_RESET_ARENA_POINTS                     = 1001,
-    RBAC_PERM_COMMAND_QUESTCOMPLETER                         = 1002,
-    RBAC_PERM_COMMAND_QUESTCOMPLETER_STATUS                  = 1003,
-    RBAC_PERM_COMMAND_QUESTCOMPLETER_ADD                     = 1004,
-    RBAC_PERM_COMMAND_QUESTCOMPLETER_DEL                     = 1005,
-    RBAC_PERM_COMMAND_ONLINE                                 = 1006,
-    RBAC_PERM_COMMAND_ONLINE_ACC                             = 1007,
-    RBAC_PERM_COMMAND_ONLINE_CHAR                            = 1008,
-    RBAC_PERM_COMMAND_INSTANCE_SETDATA                       = 1009,
-    RBAC_PERM_COMMAND_INSTANCE_GETDATA                       = 1010,
-	RBAC_PERM_COMMAND_QUESTCOMPLETER_COMP					 = 1011,
-	RBAC_PERM_COMMAND_MUTEHISTORY                            = 1012,
-    
-    RBAC_PERM_COMMAND_SPECTATE                               = 1100,
-    RBAC_PERM_COMMAND_SPECTATE_VIEW                          = 1101,
-    RBAC_PERM_COMMAND_SPECTATE_LEAVE                         = 1102,
-    RBAC_PERM_COMMAND_SPECTATE_PLAYER                        = 1103,
-    RBAC_PERM_COMMAND_SPECTATE_RESET                         = 1104,
-    
-    RBAC_PERM_COMMAND_ANTICHEAT                              = 1105,
-    RBAC_PERM_COMMAND_ANTICHEAT_GLOBAL                       = 1106,
-    RBAC_PERM_COMMAND_ANTICHEAT_PLAYER                       = 1107,
-    RBAC_PERM_COMMAND_ANTICHEAT_HANDLE                       = 1108,
-    RBAC_PERM_COMMAND_ANTICHEAT_DELETE                       = 1109,
-    RBAC_PERM_COMMAND_ANTICHEAT_JAIL                         = 1110,
-    RBAC_PERM_COMMAND_ANTICHEAT_WARN                         = 1111,
-
     // custom permissions 1000+
 	RBAC_PERM_COMMAND_SPECTATE								= 1000,
 	RBAC_PERM_COMMAND_SPECTATE_PLAYER						= 1001,
 	RBAC_PERM_COMMAND_SPECTATE_VIEW							= 1002,
 	RBAC_PERM_COMMAND_SPECTATE_RESET						= 1003,
 	RBAC_PERM_COMMAND_SPECTATE_LEAVE						= 1004,
-	RBAC_PERM_COMMAND_CHAT									= 1111,
 
     RBAC_PERM_MAX
 };

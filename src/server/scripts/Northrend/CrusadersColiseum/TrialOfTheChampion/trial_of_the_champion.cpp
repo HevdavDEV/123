@@ -357,7 +357,7 @@ public:
                 if (instance->GetData(BOSS_ARGENT_CHALLENGE_E) == NOT_STARTED && instance->GetData(BOSS_ARGENT_CHALLENGE_P) == NOT_STARTED)
                 {
                     if (instance->GetData(BOSS_GRAND_CHAMPIONS) == NOT_STARTED)
-                        SetData(DATA_START, 0);
+                        me->AI()->SetData(DATA_START, 0);
 
                     if (instance->GetData(BOSS_GRAND_CHAMPIONS) == DONE)
                         DoStartArgentChampionEncounter();
@@ -431,7 +431,7 @@ public:
 
         void JustSummoned(Creature* summon) OVERRIDE
         {
-            if (instance->GetData(BOSS_GRAND_CHAMPIONS) == NOT_STARTED)
+            if (instance && instance->GetData(BOSS_GRAND_CHAMPIONS) == NOT_STARTED)
             {
                 summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 summon->SetReactState(REACT_PASSIVE);
@@ -452,7 +452,7 @@ public:
                 case VEHICLE_ORGRIMMAR_WOLF:
                 case VEHICLE_SILVERMOON_HAWKSTRIDER:
                 case VEHICLE_DARKSPEAR_RAPTOR:
-                    SetData(DATA_LESSER_CHAMPIONS_DEFEATED, 0);
+                    me->AI()->SetData(DATA_LESSER_CHAMPIONS_DEFEATED, 0);
                     break;
             }
         }

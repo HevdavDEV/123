@@ -1363,11 +1363,6 @@ class npc_dark_nucleus : public CreatureScript
                     _targetAuraCheck -= diff;
             }
 
-            void JustDied(Unit* /*killer*/) OVERRIDE
-            {
-                me->DespawnOrUnsummon();
-            }
-
         private:
             uint32 _targetAuraCheck;
             bool _lockedTarget;
@@ -1504,7 +1499,6 @@ class spell_taldaram_ball_of_inferno_flame : public SpellScriptLoader
         }
 };
 
-// 72080 - Kinetic Bomb (Valanar)
 class spell_valanar_kinetic_bomb : public SpellScriptLoader
 {
     public:
@@ -1514,15 +1508,18 @@ class spell_valanar_kinetic_bomb : public SpellScriptLoader
         {
             PrepareSpellScript(spell_valanar_kinetic_bomb_SpellScript);
 
-            void SetDest(SpellDestination& dest)
+            void ChangeSummonPos(SpellEffIndex /*effIndex*/)
             {
-                Position const offset = { 0.0f, 0.0f, 20.0f, 0.0f };
-                dest.RelocateOffset(offset);
+                WorldLocation summonPos = *GetExplTargetDest();
+                Position offset = {0.0f, 0.0f, 20.0f, 0.0f};
+                summonPos.RelocateOffset(offset);
+                SetExplTargetDest(summonPos);
+                GetHitDest()->RelocateOffset(offset);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_valanar_kinetic_bomb_SpellScript::SetDest, EFFECT_0, TARGET_DEST_CASTER);
+                OnEffectHit += SpellEffectFn(spell_valanar_kinetic_bomb_SpellScript::ChangeSummonPos, EFFECT_0, SPELL_EFFECT_SUMMON);
             }
         };
 

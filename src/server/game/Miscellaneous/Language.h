@@ -1229,17 +1229,9 @@ enum TrinityStrings
     LANG_BAN_CHARACTER_YOUPERMBANNEDMESSAGE_WORLD = 11005,
     LANG_BAN_ACCOUNT_YOUBANNEDMESSAGE_WORLD       = 11006,
     LANG_BAN_ACCOUNT_YOUPERMBANNEDMESSAGE_WORLD   = 11007,
-    
-    //anticheat show ban
-    LANG_BAN_CHEATER                    = 11002,
 
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000009999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)
     // For other tables maybe             2000010000-2147483647 (max index)
-
-    //custom on TW
-    LANG_NOT_ONLINE                     = 11500,
-    LANG_LOOKUP_ONLINE                  = 11501,
-    LANG_COMMAND_TICKETCOMPLETED        = 11502,
 };
 #endif

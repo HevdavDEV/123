@@ -150,10 +150,7 @@ class npc_commander_eligor_dawnbringer : public CreatureScript
 
         struct npc_commander_eligor_dawnbringerAI : public ScriptedAI
         {
-            npc_commander_eligor_dawnbringerAI(Creature* creature) : ScriptedAI(creature)
-            {
-                talkWing = 0;
-            }
+            npc_commander_eligor_dawnbringerAI(Creature* creature) : ScriptedAI(creature) { }
 
             void Reset() OVERRIDE
             {
@@ -652,11 +649,7 @@ class npc_torturer_lecraft : public CreatureScript
 
         struct npc_torturer_lecraftAI : public ScriptedAI
         {
-            npc_torturer_lecraftAI(Creature* creature) : ScriptedAI(creature)
-            {
-                _textCounter = 1;
-                _playerGUID = 0;
-            }
+            npc_torturer_lecraftAI(Creature* creature) : ScriptedAI(creature) { }
 
             void Reset() OVERRIDE
             {

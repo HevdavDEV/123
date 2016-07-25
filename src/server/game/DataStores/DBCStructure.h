@@ -651,9 +651,9 @@ struct CharTitlesEntry
 {
     uint32  ID;                                             // 0, title ids, for example in Quest::GetCharTitleId()
     //uint32      unk1;                                     // 1 flags?
-    char*   nameMale[16];                                   // 2-17
+    char*   name[16];                                       // 2-17
                                                             // 18 string flag, unused
-    char*   nameFemale[16];                                 // 19-34
+    //char*       name2[16];                                // 19-34, unused
                                                             // 35 string flag, unused
     uint32  bit_index;                                      // 36 used in PLAYER_CHOSEN_TITLE and 1<<index in PLAYER__FIELD_KNOWN_TITLES
 };
@@ -1230,24 +1230,6 @@ struct LFGDungeonEntry
     uint32 Entry() const { return ID + (type << 24); }
 };
 
-struct LightEntry
-{
-    uint32 Id;
-    uint32 MapId;
-    float X;
-    float Y;
-    float Z;
-    //float FalloffStart;
-    //float FalloffEnd;
-    //uint32 SkyAndFog;
-    //uint32 WaterSettings;
-    //uint32 SunsetParams;
-    //uint32 OtherParams;
-    //uint32 DeathParams;
-    //uint32 Unknown;
-    //uint32 Unknown;
-    //uint32 Unknown;
-};
 
 struct LiquidTypeEntry
 {
@@ -1288,7 +1270,7 @@ struct MailTemplateEntry
     uint32      ID;                                         // 0
     //char*       subject[16];                              // 1-16
                                                             // 17 name flags, unused
-    char*       content[16];                                // 18-33
+    char*       content[16];                              // 18-33
 };
 
 struct MapEntry
@@ -1296,7 +1278,7 @@ struct MapEntry
     uint32  MapID;                                          // 0
     //char*       internalname;                             // 1 unused
     uint32  map_type;                                       // 2
-    uint32  Flags;                                          // 3
+    //uint32 unk_330;                                       // 3
                                                             // 4 0 or 1 for battlegrounds (not arenas)
     char*   name[16];                                       // 5-20
                                                             // 21 name flags, unused
@@ -1306,14 +1288,14 @@ struct MapEntry
     //char*     allianceIntro[16];                          // 40-55 text for PvP Zones
                                                             // 56 intro text flags
     uint32  multimap_id;                                    // 57
-    //float BattlefieldMapIconScale;                        // 58
+                                                            // 58
     int32   entrance_map;                                   // 59 map_id of entrance map
     float   entrance_x;                                     // 60 entrance x coordinate (if exist single entry)
     float   entrance_y;                                     // 61 entrance y coordinate (if exist single entry)
-    //uint32 TimeOfDayOverride;                             // 62 -1, 0 and 720
+                                                            // 62 -1, 0 and 720
     uint32  addon;                                          // 63 (0-original maps, 1-tbc addon)
     uint32  unk_time;                                       // 64 some kind of time?
-    uint32  maxPlayers;                                     // 65 max players, fallback if not present in MapDifficulty.dbc
+    //uint32 maxPlayers;                                    // 65 max players
 
     // Helpers
     uint32 Expansion() const { return addon; }
@@ -1341,8 +1323,6 @@ struct MapEntry
     {
         return MapID == 0 || MapID == 1 || MapID == 530 || MapID == 571;
     }
-
-    bool IsDynamicDifficultyMap() const { return Flags & MAP_FLAG_DYNAMIC_DIFFICULTY; }
 };
 
 struct MapDifficultyEntry

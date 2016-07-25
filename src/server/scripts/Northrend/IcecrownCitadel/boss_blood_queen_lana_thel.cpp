@@ -161,7 +161,6 @@ class boss_blood_queen_lana_thel : public CreatureScript
                 _vampires.clear();
                 _creditBloodQuickening = false;
                 _killMinchar = false;
-                me->SetHealth(me->GetMaxHealth());
             }
 
             void EnterCombat(Unit* who) OVERRIDE
@@ -198,7 +197,7 @@ class boss_blood_queen_lana_thel : public CreatureScript
                 {
                     instance->SetData(DATA_BLOOD_QUICKENING_STATE, DONE);
                     if (Player* player = killer->ToPlayer())
-                        player->RewardPlayerAndGroupAtEvent(Is25ManRaid() ? NPC_INFILTRATOR_MINCHAR_BQ_25 : NPC_INFILTRATOR_MINCHAR_BQ, player);
+                        player->RewardPlayerAndGroupAtEvent(NPC_INFILTRATOR_MINCHAR_BQ, player);
                     if (Creature* minchar = me->FindNearestCreature(NPC_INFILTRATOR_MINCHAR_BQ, 200.0f))
                     {
                         minchar->SetUInt32Value(UNIT_NPC_EMOTESTATE, 0);
@@ -801,7 +800,7 @@ class spell_blood_queen_pact_of_the_darkfallen_dmg : public SpellScriptLoader
             // this is an additional effect to be executed
             void PeriodicTick(AuraEffect const* aurEff)
             {
-                SpellInfo const* damageSpell = sSpellMgr->EnsureSpellInfo(SPELL_PACT_OF_THE_DARKFALLEN_DAMAGE);
+                SpellInfo const* damageSpell = sSpellMgr->GetSpellInfo(SPELL_PACT_OF_THE_DARKFALLEN_DAMAGE);
                 int32 damage = damageSpell->Effects[EFFECT_0].CalcValue();
                 float multiplier = 0.3375f + 0.1f * uint32(aurEff->GetTickNumber()/10); // do not convert to 0.01f - we need tick number/10 as INT (damage increases every 10 ticks)
                 damage = int32(damage * multiplier);

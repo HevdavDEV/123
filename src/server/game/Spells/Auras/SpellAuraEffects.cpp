@@ -1665,16 +1665,10 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
                break;
         }
 
-        if (target->HasAura(51713))
-            form = FORM_SHADOW_DANCE;
-
-         // remove other shapeshift before applying a new one
-
-        if (form != FORM_SHADOW_DANCE && !target->HasAura(51713))
+        // remove other shapeshift before applying a new one
+        if(!target->HasAura(51713))
             target->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT, 0, GetBase());
 
-        if (target->HasAura(1784) && form == FORM_SHADOW_DANCE)
-            form = FORM_STEALTH;
         // stop handling the effect if it was removed by linked event
         if (aurApp->GetRemoveMode())
             return;
@@ -1831,7 +1825,6 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
     if (target->GetTypeId() == TYPEID_PLAYER)
     {
         SpellShapeshiftEntry const* shapeInfo = sSpellShapeshiftStore.LookupEntry(form);
-        ASSERT(shapeInfo);
         // Learn spells for shapeshift form - no need to send action bars or add spells to spellbook
         for (uint8 i = 0; i<MAX_SHAPESHIFT_SPELLS; ++i)
         {
@@ -2247,10 +2240,6 @@ void AuraEffect::HandleAuraModDisarm(AuraApplication const* aurApp, uint8 mode, 
     // if disarm aura is to be removed, remove the flag first to reapply damage/aura mods
     if (!apply)
         target->RemoveFlag(field, flag);
-
-    // Bladestorm hack
-    if (apply && target->HasAura(46924))
-        target->RemoveAura(46924);
 
     // Handle damage modification, shapeshifted druids are not affected
     if (target->GetTypeId() == TYPEID_PLAYER && !target->IsInFeralForm())
@@ -4792,7 +4781,7 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                     uint32 spellId = 24659;
                     if (apply && caster)
                     {
-                        SpellInfo const* spell = sSpellMgr->EnsureSpellInfo(spellId);
+                        SpellInfo const* spell = sSpellMgr->GetSpellInfo(spellId);
 
                         for (uint32 i = 0; i < spell->StackAmount; ++i)
                             caster->CastSpell(target, spell->Id, true, NULL, NULL, GetCasterGUID());
@@ -4807,7 +4796,7 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                     uint32 spellId = 24662;
                     if (apply && caster)
                     {
-                        SpellInfo const* spell = sSpellMgr->EnsureSpellInfo(spellId);
+                        SpellInfo const* spell = sSpellMgr->GetSpellInfo(spellId);
                         for (uint32 i = 0; i < spell->StackAmount; ++i)
                             caster->CastSpell(target, spell->Id, true, NULL, NULL, GetCasterGUID());
                         break;
@@ -5371,6 +5360,37 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
                     if (!target->HasAuraType(SPELL_AURA_MOD_STEALTH))
                         target->RemoveAurasDueToSpell(31665);
                     break;
+                // Killing Spree
+                case 51690:
+                {
+                    /// @todo this should use effect[1] of 51690
+                    UnitList targets;
+                    {
+                        // eff_radius == 0
+                        float radius = GetSpellInfo()->GetMaxRange(false);
+
+                        CellCoord p(Trinity::ComputeCellCoord(target->GetPositionX(), target->GetPositionY()));
+                        Cell cell(p);
+
+                        Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck u_check(target, radius);
+                        Trinity::UnitListSearcher<Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck> checker(target, targets, u_check);
+
+                        TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck>, GridTypeMapContainer > grid_object_checker(checker);
+                        TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck>, WorldTypeMapContainer > world_object_checker(checker);
+
+                        cell.Visit(p, grid_object_checker,  *GetBase()->GetOwner()->GetMap(), *target, radius);
+                        cell.Visit(p, world_object_checker, *GetBase()->GetOwner()->GetMap(), *target, radius);
+                    }
+
+                    if (targets.empty())
+                        return;
+
+                    Unit* spellTarget = Trinity::Containers::SelectRandomContainerElement(targets);
+
+                    target->CastSpell(spellTarget, 57840, true);
+                    target->CastSpell(spellTarget, 57841, true);
+                    break;
+                }
                 // Overkill
                 case 58428:
                     if (!target->HasAuraType(SPELL_AURA_MOD_STEALTH))
@@ -5426,13 +5446,8 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster) const
             if (GetSpellInfo()->SpellFamilyFlags[0] & 0x20)
             {
                 if (caster)
-<<<<<<< HEAD
-                    target->CastCustomSpell(target, 52212, &m_amount, NULL, NULL, true, 0, this, caster->GetGUID())
-                ;break;
-=======
                     target->CastCustomSpell(target, 52212, &m_amount, NULL, NULL, true, 0, this, caster->GetGUID());
                 break;
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
             }
             // Blood of the North
             // Reaping
@@ -5689,11 +5704,6 @@ void AuraEffect::HandlePeriodicTriggerSpellAuraTick(Unit* target, Unit* caster) 
                 GetBase()->GetUnitOwner()->CastSpell(target, triggeredSpellInfo, true, 0, this, GetBase()->GetUnitOwner()->GetGUID());
                 return;
             }
-            // Rapid Recuperation
-            case 56654:
-            case 58882:
-                caster->CastCustomSpell(caster, 58883, &m_amount, NULL, NULL, true, NULL, this, caster->GetGUID());
-                return;
             // Slime Spray - temporary here until preventing default effect works again
             // added on 9.10.2010
             case 69508:
@@ -5872,13 +5882,6 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
     }
     else
         damage = uint32(target->CountPctFromMaxHealth(damage));
-
-    if (m_spellInfo->Effects[m_effIndex].IsTargetingArea() || m_spellInfo->Effects[m_effIndex].IsAreaAuraEffect() || m_spellInfo->Effects[m_effIndex].IsEffect(SPELL_EFFECT_PERSISTENT_AREA_AURA))
-    {
-        damage = int32(float(damage) * target->GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE, m_spellInfo->SchoolMask));
-        if (caster->GetTypeId() != TYPEID_PLAYER)
-            damage = int32(float(damage) * target->GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CREATURE_AOE_DAMAGE_AVOIDANCE, m_spellInfo->SchoolMask));
-    }
 
     bool crit = IsPeriodicTickCrit(target, caster);
     if (crit)
@@ -6134,8 +6137,8 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
         caster->DealDamage(caster, funnelDamage, &cleanDamage, NODAMAGE, GetSpellInfo()->GetSchoolMask(), GetSpellInfo(), true);
     }
 
-    uint32 procAttacker = PROC_FLAG_DONE_PERIODIC | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_POS;
-    uint32 procVictim   = PROC_FLAG_TAKEN_PERIODIC | PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_POS;
+    uint32 procAttacker = PROC_FLAG_DONE_PERIODIC;
+    uint32 procVictim   = PROC_FLAG_TAKEN_PERIODIC;
     uint32 procEx = (crit ? PROC_EX_CRITICAL_HIT : PROC_EX_NORMAL_HIT) | PROC_EX_INTERNAL_HOT;
     // ignore item heals
     if (!haveCastItem)

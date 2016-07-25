@@ -388,9 +388,6 @@ class ItemScript : public ScriptObject
 
         // Called when the item expires (is destroyed).
         virtual bool OnExpire(Player* /*player*/, ItemTemplate const* /*proto*/) { return false; }
-		
-        // Called when the item is destroyed.
-        virtual bool OnRemove(Player* /*player*/, Item* /*item*/) { return false; }
 };
 
 class UnitScript : public ScriptObject
@@ -921,7 +918,6 @@ class ScriptMgr
         bool OnQuestAccept(Player* player, Item* item, Quest const* quest);
         bool OnItemUse(Player* player, Item* item, SpellCastTargets const& targets);
         bool OnItemExpire(Player* player, ItemTemplate const* proto);
-        bool OnItemRemove(Player* player, Item* item);
 
     public: /* CreatureScript */
 

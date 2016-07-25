@@ -134,7 +134,7 @@ class boss_nazan : public CreatureScript
                         me->SetWalk(true);
                         me->GetMotionMaster()->Clear();
                         if (Unit* victim = SelectTarget(SELECT_TARGET_NEAREST, 0))
-                            AttackStart(victim);
+                            me->AI()->AttackStart(victim);
                         DoStartMovement(me->GetVictim());
                         Talk(EMOTE);
                         return;

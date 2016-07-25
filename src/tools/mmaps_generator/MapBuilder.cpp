@@ -36,7 +36,7 @@ namespace DisableMgr
 }
 
 #define MMAP_MAGIC 0x4d4d4150   // 'MMAP'
-#define MMAP_VERSION 5
+#define MMAP_VERSION 4
 
 struct MmapTileHeader
 {
@@ -340,9 +340,7 @@ namespace MMAP
     /**************************************************************************/
     void MapBuilder::buildMap(uint32 mapID)
     {
-#ifndef __APPLE__
         printf("[Thread %u] Building map %03u:\n", uint32(ACE_Thread::self()), mapID);
-#endif
 
         std::set<uint32>* tiles = getTileList(mapID);
 

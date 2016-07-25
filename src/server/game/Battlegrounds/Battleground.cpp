@@ -790,7 +790,6 @@ void Battleground::EndBattleground(uint32 winner)
     uint32 winnerMatchmakerRating = 0;
     int32  winnerChange = 0;
     int32  winnerMatchmakerChange = 0;
-    uint32 duration = GetStartTime()/IN_MILLISECONDS;
 
     int32 winmsg_id = 0;
 
@@ -828,7 +827,6 @@ void Battleground::EndBattleground(uint32 winner)
         {
             if (!sWorld->getBoolConfig(CONFIG_ARENA_CHECK_CHEATERS_ONLYLOG))
             {
-<<<<<<< HEAD
                 SetArenaTeamRatingChangeForTeam(ALLIANCE, 0);
                 SetArenaTeamRatingChangeForTeam(HORDE, 0);
             }
@@ -859,66 +857,6 @@ void Battleground::EndBattleground(uint32 winner)
                             {
                                 TC_LOG_DEBUG("bg.arena", "Statistics match Type: %u for %s (GUID: " UI64FMTD ", Team: %d, IP: %s): %u damage, %u healing, %u killing blows",
                                     m_ArenaType, player->GetName().c_str(), itr->first, player->GetArenaTeamId(m_ArenaType == 5 ? 2 : m_ArenaType == 3),
-=======
-                loserTeamRating = loserArenaTeam->GetRating();
-                loserMatchmakerRating = GetArenaMatchmakerRating(GetOtherTeam(winner));
-                winnerTeamRating = winnerArenaTeam->GetRating();
-                winnerMatchmakerRating = GetArenaMatchmakerRating(winner);
-                winnerMatchmakerChange = winnerArenaTeam->WonAgainst(winnerMatchmakerRating, loserMatchmakerRating, winnerChange);
-                loserMatchmakerChange = loserArenaTeam->LostAgainst(loserMatchmakerRating, winnerMatchmakerRating, loserChange);
-                TC_LOG_DEBUG("bg.arena", "match Type: %u --- Winner: old rating: %u, rating gain: %d, old MMR: %u, MMR gain: %d --- Loser: old rating: %u, rating loss: %d, old MMR: %u, MMR loss: %d ---", m_ArenaType, winnerTeamRating, winnerChange, winnerMatchmakerRating,
-                    winnerMatchmakerChange, loserTeamRating, loserChange, loserMatchmakerRating, loserMatchmakerChange);
-                SetArenaMatchmakerRating(winner, winnerMatchmakerRating + winnerMatchmakerChange);
-                SetArenaMatchmakerRating(GetOtherTeam(winner), loserMatchmakerRating + loserMatchmakerChange);
-                SetArenaTeamRatingChangeForTeam(winner, winnerChange);
-                SetArenaTeamRatingChangeForTeam(GetOtherTeam(winner), loserChange);
-                /** World of Warcraft Armory **/
-                uint32 maxChartID;
-                QueryResult result = CharacterDatabase.PQuery("SELECT MAX(gameid) FROM armory_game_chart");
-                if (!result)
-                    maxChartID = 0;
-                else
-                    maxChartID = (*result)[0].GetUInt32();
-
-                uint32 gameID = maxChartID+1;
-                for (BattlegroundScoreMap::const_iterator itr = PlayerScores.begin(); itr != PlayerScores.end(); ++itr)
-                {
-                    Player *plr = ObjectAccessor::FindPlayer(itr->first);
-                    if (!plr)
-                        continue;
-                    uint32 plTeamID = plr->GetArenaTeamId(winnerArenaTeam->GetSlot());
-                    int changeType;
-                    uint32 resultRating;
-                    uint32 resultTeamID;
-                    int32 ratingChange;
-                    if (plTeamID == winnerArenaTeam->GetId())
-                    {
-                        changeType = 1; //win
-                        resultRating = winnerTeamRating;
-                        resultTeamID = plTeamID;
-                        ratingChange = winnerChange;
-                    }
-                    else
-                    {
-                        changeType = 2; //lose
-                        resultRating = loserTeamRating;
-                        resultTeamID = loserArenaTeam->GetId();
-                        ratingChange = loserChange;
-                    }
-                    std::ostringstream sql_query;
-                    //                                                        gameid,              teamid,                     guid,                    changeType,             ratingChange,               teamRating,                  damageDone,                          deaths,                          healingDone,                           damageTaken,,                           healingTaken,                         killingBlows,                      mapId,                 start,                   end
-                    sql_query << "INSERT INTO armory_game_chart VALUES ('" << gameID << "', '" << resultTeamID << "', '" << plr->GetGUID() << "', '" << changeType << "', '" << ratingChange  << "', '" << resultRating << "', '" << itr->second->DamageDone << "', '" << itr->second->Deaths << "', '" << itr->second->HealingDone << "', '" << itr->second->DamageTaken << "', '" << itr->second->HealingTaken << "', '" << itr->second->KillingBlows << "', '" << m_MapId << "', '" << startbgtime << "', '" << duration << "')";
-                    CharacterDatabase.Execute(sql_query.str().c_str());
-                }
-                /** World of Warcraft Armory **/
-                TC_LOG_DEBUG("bg.arena", "Arena match Type: %u for Team1Id: %u - Team2Id: %u ended. WinnerTeamId: %u. Winner rating: +%d, Loser rating: %d", m_ArenaType, m_ArenaTeamIds[TEAM_ALLIANCE], m_ArenaTeamIds[TEAM_HORDE], winnerArenaTeam->GetId(), winnerChange, loserChange);
-                if (sWorld->getBoolConfig(CONFIG_ARENA_LOG_EXTENDED_INFO))
-                    for (Battleground::BattlegroundScoreMap::const_iterator itr = GetPlayerScoresBegin(); itr != GetPlayerScoresEnd(); ++itr)
-                        if (Player* player = ObjectAccessor::FindPlayer(itr->first))
-                        {
-                            TC_LOG_DEBUG("bg.arena", "Statistics match Type: %u for %s (GUID: " UI64FMTD ", Team: %d, IP: %s): %u damage, %u healing, %u killing blows",
-                                m_ArenaType, player->GetName().c_str(), itr->first, player->GetArenaTeamId(m_ArenaType == 5 ? 2 : m_ArenaType == 3),
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
                                 player->GetSession()->GetRemoteAddress().c_str(), itr->second->DamageDone, itr->second->HealingDone,
                                 itr->second->KillingBlows);
                             }
@@ -966,10 +904,7 @@ void Battleground::EndBattleground(uint32 winner)
         Player* player = _GetPlayer(itr, "EndBattleground");
         if (!player)
             continue;
-        // challenge script by SymbolixDEV
-        if (player->getSkirmishStatus((ArenaType)m_ArenaType) == SKIRMISH_JOINED)
-            player->setSkirmishStatus((ArenaType)m_ArenaType, SKIRMISH_NONE);
-        // challenge script by SymbolixDEV
+
         // should remove spirit of redemption
         if (player->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
             player->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
@@ -1216,7 +1151,6 @@ void Battleground::Reset()
     SetEndTime(0);
     SetLastResurrectTime(0);
     m_Events = 0;
-    startbgtime = 0;
 
     if (m_InvitedAlliance > 0 || m_InvitedHorde > 0)
         TC_LOG_ERROR("bg.battleground", "Battleground::Reset: one of the counters is not 0 (alliance: %u, horde: %u) for BG (map: %u, instance id: %u)!",
@@ -1248,10 +1182,7 @@ void Battleground::StartBattleground()
     sBattlegroundMgr->AddBattleground(this);
 
     if (m_IsRated)
-    {
-        startbgtime = time(NULL);
         TC_LOG_DEBUG("bg.arena", "Arena match type: %u for Team1Id: %u - Team2Id: %u started.", m_ArenaType, m_ArenaTeamIds[TEAM_ALLIANCE], m_ArenaTeamIds[TEAM_HORDE]);
-    }
 }
 
 void Battleground::AddPlayer(Player* player)
@@ -1572,14 +1503,6 @@ void Battleground::UpdatePlayerScore(Player* Source, uint32 type, uint32 value, 
         case SCORE_HEALING_DONE:                            // Healing Done
             itr->second->HealingDone += value;
             break;
-        /** World of Warcraft Armory **/
-        case SCORE_DAMAGE_TAKEN:
-            itr->second->DamageTaken += value;              // Damage Taken
-            break;
-        case SCORE_HEALING_TAKEN:
-            itr->second->HealingTaken += value;             // Healing Taken
-            break;
-        /** World of Warcraft Armory **/
         default:
             TC_LOG_ERROR("bg.battleground", "Battleground::UpdatePlayerScore: unknown score type (%u) for BG (map: %u, instance id: %u)!",
                 type, m_MapId, m_InstanceID);
@@ -1722,33 +1645,21 @@ void Battleground::DoorOpen(uint32 type)
             type, GUID_LOPART(BgObjects[type]), m_MapId, m_InstanceID);
 }
 
-GameObject* Battleground::GetBGObject(uint32 type, bool logError)
+GameObject* Battleground::GetBGObject(uint32 type)
 {
     GameObject* obj = GetBgMap()->GetGameObject(BgObjects[type]);
     if (!obj)
-    {
-        if (logError)
-            TC_LOG_ERROR("bg.battleground", "Battleground::GetBGObject: gameobject (type: %u, GUID: %u) not found for BG (map: %u, instance id: %u)!",
-                type, GUID_LOPART(BgObjects[type]), m_MapId, m_InstanceID);
-        else
-            TC_LOG_INFO("bg.battleground", "Battleground::GetBGObject: gameobject (type: %u, GUID: %u) not found for BG (map: %u, instance id: %u)!",
-                type, GUID_LOPART(BgObjects[type]), m_MapId, m_InstanceID);
-    }
+        TC_LOG_ERROR("bg.battleground", "Battleground::GetBGObject: gameobject (type: %u, GUID: %u) not found for BG (map: %u, instance id: %u)!",
+            type, GUID_LOPART(BgObjects[type]), m_MapId, m_InstanceID);
     return obj;
 }
 
-Creature* Battleground::GetBGCreature(uint32 type, bool logError)
+Creature* Battleground::GetBGCreature(uint32 type)
 {
     Creature* creature = GetBgMap()->GetCreature(BgCreatures[type]);
     if (!creature)
-    {
-        if (logError)
-            TC_LOG_ERROR("bg.battleground", "Battleground::GetBGCreature: creature (type: %u, GUID: %u) not found for BG (map: %u, instance id: %u)!",
-                type, GUID_LOPART(BgCreatures[type]), m_MapId, m_InstanceID);
-        else
-            TC_LOG_INFO("bg.battleground", "Battleground::GetBGCreature: creature (type: %u, GUID: %u) not found for BG (map: %u, instance id: %u)!",
-                type, GUID_LOPART(BgCreatures[type]), m_MapId, m_InstanceID);
-    }
+        TC_LOG_ERROR("bg.battleground", "Battleground::GetBGCreature: creature (type: %u, GUID: %u) not found for BG (map: %u, instance id: %u)!",
+            type, GUID_LOPART(BgCreatures[type]), m_MapId, m_InstanceID);
     return creature;
 }
 
@@ -2208,8 +2119,8 @@ uint8 Battleground::ClickFastStart(Player *player, GameObject *go)
 
 	if (m_playersWantFastStart.size() == playersNeeded)
 	{
-        if (GetStartDelayTime() > BG_START_DELAY_15S)
-            SetStartDelayTime(BG_START_DELAY_15S);
+		DespawnCrystals();
+		SetStartDelayTime(BG_START_DELAY_15S);
 	}
 
 	return m_playersWantFastStart.size();

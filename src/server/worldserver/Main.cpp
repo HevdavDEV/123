@@ -38,8 +38,8 @@
 #ifdef _WIN32
 #include "ServiceWin32.h"
 char serviceName[] = "worldserver";
-char serviceLongName[] = "Junky & Symbolix Repack world service";
-char serviceDescription[] = "Junky & Symbolix Repack  World of Warcraft emulator world service";
+char serviceLongName[] = "InvisibleCore world service";
+char serviceDescription[] = "InvisibleCore World of Warcraft emulator world service";
 /*
  * -1 - not in service mode
  *  0 - stopped
@@ -132,10 +132,10 @@ extern int main(int argc, char** argv)
         return 1;
     }
 
-	TC_LOG_INFO("server.worldserver", "Junky & Symbolix Repack Using configuration file %s.", cfg_file);
+	TC_LOG_INFO("server.worldserver", "InvisibleCore: Using configuration file %s.", cfg_file);
 
-	TC_LOG_INFO("server.worldserver", "Junky & Symbolix Repack Using SSL version: %s (library: %s)", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
-	TC_LOG_INFO("server.worldserver", "Junky & Symbolix Repack Using ACE version: %s", ACE_VERSION);
+	TC_LOG_INFO("server.worldserver", "InvisibleCore: Using SSL version: %s (library: %s)", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
+	TC_LOG_INFO("server.worldserver", "InvisibleCore: Using ACE version: %s", ACE_VERSION);
 
     ///- and run the 'Master'
     /// @todo Why do we need this 'Master'? Can't all of this be in the Main as for Realmd?

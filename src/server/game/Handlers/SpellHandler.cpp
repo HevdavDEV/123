@@ -33,7 +33,6 @@
 #include "GameObjectAI.h"
 #include "SpellAuraEffects.h"
 #include "Player.h"
-#include "../../scripts/Custom/Transmogrification/Transmogrification.h"
 
 void WorldSession::HandleClientCastFlags(WorldPacket& recvPacket, uint8 castFlags, SpellCastTargets& targets)
 {
@@ -267,21 +266,19 @@ void WorldSession::HandleOpenItemOpcode(WorldPacket& recvPacket)
 void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recvData)
 {
     uint64 guid;
+
     recvData >> guid;
 
     TC_LOG_DEBUG("network", "WORLD: Recvd CMSG_GAMEOBJ_USE Message [guid=%u]", GUID_LOPART(guid));
 
     if (GameObject* obj = GetPlayer()->GetMap()->GetGameObject(guid))
     {
-        if (!obj->IsWithinDistInMap(GetPlayer(), obj->GetInteractionDistance()))
-            return;
-
         // ignore for remote control state
-        if (GetPlayer()->m_mover != GetPlayer())
-            if (!(GetPlayer()->IsOnVehicle(GetPlayer()->m_mover) || GetPlayer()->IsMounted()) && !obj->GetGOInfo()->IsUsableMounted())
+        if (_player->m_mover != _player)
+            if (!(_player->IsOnVehicle(_player->m_mover) || _player->IsMounted()) && !obj->GetGOInfo()->IsUsableMounted())
                 return;
 
-        obj->Use(GetPlayer());
+        obj->Use(_player);
     }
 }
 
@@ -618,12 +615,7 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPacket& recvData)
             else if (*itr == EQUIPMENT_SLOT_BACK && player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_CLOAK))
                 data << uint32(0);
             else if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, *itr))
-                {
-                if (uint32 entry = sTransmogrification->GetFakeEntry(item->GetGUID()))
-                    data << uint32(sObjectMgr->GetItemTemplate(entry)->DisplayInfoID);
-                else
-                    data << uint32(item->GetTemplate()->DisplayInfoID);
-                }
+                data << uint32(item->GetTemplate()->DisplayInfoID);
             else
                 data << uint32(0);
         }

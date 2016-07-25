@@ -113,11 +113,7 @@ public:
 
     struct npc_bloodmaul_bruteAI : public ScriptedAI
     {
-        npc_bloodmaul_bruteAI(Creature* creature) : ScriptedAI(creature)
-        {
-            PlayerGUID = 0;
-            hp30 = false;
-        }
+        npc_bloodmaul_bruteAI(Creature* creature) : ScriptedAI(creature) { }
 
         void Reset() OVERRIDE
         {
@@ -1132,7 +1128,6 @@ public:
         npc_oscillating_frequency_scanner_master_bunnyAI(Creature* creature) : ScriptedAI(creature)
         {
             playerGuid = 0;
-            timer = 500;
         }
 
         void Reset() OVERRIDE

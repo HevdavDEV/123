@@ -2714,39 +2714,8 @@ void SpellMgr::UnloadSpellInfoImplicitTargetConditionLists()
 void SpellMgr::LoadSpellInfoCustomAttributes()
 {
     uint32 oldMSTime = getMSTime();
-    uint32 oldMSTime2 = oldMSTime;
+
     SpellInfo* spellInfo = NULL;
-
-    QueryResult result = WorldDatabase.Query("SELECT entry, attributes FROM spell_custom_attr");
-
-    if (!result)
-        TC_LOG_INFO("server.loading", ">> Loaded 0 spell custom attributes from DB. DB table `spell_custom_attr` is empty.");
-    else
-    {
-        uint32 count = 0;
-        do
-        {
-            Field* fields = result->Fetch();
-
-            uint32 spellId = fields[0].GetUInt32();
-            uint32 attributes = fields[1].GetUInt32();
-
-            spellInfo = _GetSpellInfo(spellId);
-            if (!spellInfo)
-            {
-                TC_LOG_ERROR("sql.sql", "Table `spell_custom_attr` has wrong spell (entry: %u), ignored.", spellId);
-                continue;
-            }
-
-            // TODO: validate attributes
-
-            spellInfo->AttributesCu |= attributes;
-            ++count;
-        } while (result->NextRow());
-
-        TC_LOG_INFO("server.loading", ">> Loaded %u spell custom attributes from DB in %u ms", count, GetMSTimeDiffToNow(oldMSTime2));
-    }
-
     for (uint32 i = 0; i < GetSpellInfoStoreSize(); ++i)
     {
         spellInfo = mSpellInfoMap[i];
@@ -2763,11 +2732,7 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
                 case SPELL_AURA_AOE_CHARM:
                 case SPELL_AURA_MOD_FEAR:
                 case SPELL_AURA_MOD_STUN:
-<<<<<<< HEAD
 				case SPELL_AURA_MOD_ROOT:
-=======
-                case SPELL_AURA_MOD_ROOT:
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CC;
                     break;
                 case SPELL_AURA_PERIODIC_HEAL:
@@ -2862,7 +2827,6 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
         if (spellInfo->SpellVisual[0] == 3879)
             spellInfo->AttributesCu |= SPELL_ATTR0_CU_CONE_BACK;
 
-<<<<<<< HEAD
         switch (spellInfo->Id)
         {
             case 1776: // Gouge
@@ -3034,8 +2998,6 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
                 break;
         }
 
-=======
->>>>>>> 818278a71e91613e07eba7444f1bb2b7afef23a0
         switch (spellInfo->SpellFamilyName)
         {
             case SPELLFAMILY_WARRIOR:
@@ -3163,9 +3125,6 @@ void SpellMgr::LoadSpellInfoCorrections()
                 spellInfo->Effects[EFFECT_0].TriggerSpell = 36325; // They Must Burn Bomb Drop (DND)
                 break;
             case 49838: // Stop Time
-            case 53651: // Light's Beacon (Hidden periodic aura on Beacon of Light target)
-            case 50259: // Daze from Feral Charge - Cat
-            case 49376: // Feral Charge - Cat
                 spellInfo->AttributesEx3 |= SPELL_ATTR3_NO_INITIAL_AGGRO;
                 break;
             case 61407: // Energize Cores
@@ -3250,13 +3209,10 @@ void SpellMgr::LoadSpellInfoCorrections()
             case 54171: // Divine Storm
                 spellInfo->MaxAffectedTargets = 3;
                 break;
-<<<<<<< HEAD
             case 71464: // Divine Surge
                 spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS); // 100yd 
                 spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(28); // 5 seconds 
                 break;
-=======
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
             case 7328:  // Redemption
             case 7329:  // Redemption
             case 10322: // Redemption
@@ -3439,9 +3395,6 @@ void SpellMgr::LoadSpellInfoCorrections()
                 spellInfo->Effects[EFFECT_1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
                 spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo();
                 spellInfo->Effects[EFFECT_1].TargetB = SpellImplicitTargetInfo();
-                break;
-            case 58883: // Rapid Recuperation
-                spellInfo->Effects[0].Effect = SPELL_EFFECT_ENERGIZE_PCT;
                 break;
             case 53241: // Marked for Death (Rank 1)
             case 53243: // Marked for Death (Rank 2)
@@ -3628,15 +3581,6 @@ void SpellMgr::LoadSpellInfoCorrections()
             case 71169: // Shadow's Fate
                 spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
                 break;
-            case 72347: // Lock Players and Tap Chest
-                spellInfo->AttributesEx3 &= ~SPELL_ATTR3_NO_INITIAL_AGGRO;
-                break;
-            case 73843: // Award Reputation - Boss Kill
-            case 73844: // Award Reputation - Boss Kill
-            case 73845: // Award Reputation - Boss Kill
-            case 73846: // Award Reputation - Boss Kill
-                spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_50000_YARDS); // 50000yd
-                break;
             case 72378: // Blood Nova (Deathbringer Saurfang)
             case 73058: // Blood Nova (Deathbringer Saurfang)
                 spellInfo->Effects[EFFECT_0].RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_200_YARDS);
@@ -3683,12 +3627,6 @@ void SpellMgr::LoadSpellInfoCorrections()
             case 72855: // Unbound Plague (Professor Putricide) (needs target selection script)
             case 72856: // Unbound Plague (Professor Putricide) (needs target selection script)
                 spellInfo->Effects[EFFECT_0].TargetB = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ENEMY);
-                break;
-            case 69783: // Ooze Flood (Rotface)
-            case 69797: // Ooze Flood (Rotface)
-            case 69799: // Ooze Flood (Rotface)
-            case 69802: // Ooze Flood (Rotface)
-                spellInfo->AttributesEx |= SPELL_ATTR1_CANT_TARGET_SELF;
                 break;
             case 71518: // Unholy Infusion Quest Credit (Professor Putricide)
             case 72934: // Blood Infusion Quest Credit (Blood-Queen Lana'thel)
@@ -3867,27 +3805,6 @@ void SpellMgr::LoadSpellInfoCorrections()
             // The spells below are here because their effect 1 is giving warning due to
             // triggered spell not found in any dbc and is missing from encounter source* of data.
             // Even judged as clientside these spells can't be guessed for* now.
-			
-            case 12723: // Sweeping Strikes.
-                spellInfo->Attributes |= SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
-                spellInfo->Attributes |= SPELL_ATTR0_ABILITY;
-                spellInfo->Attributes |= SPELL_ATTR0_DONT_AFFECT_SHEATH_STATE;
-                spellInfo->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
-                spellInfo->AttributesEx2 |= SPELL_ATTR2_UNK7;
-                spellInfo->AttributesEx2 |= SPELL_ATTR2_UNK22, SPELL_ATTR2_CANT_CRIT;
-                spellInfo->AttributesEx3 |= SPELL_ATTR3_TRIGGERED_CAN_TRIGGER_PROC_2;
-                spellInfo->AttributesEx3 |= SPELL_ATTR3_NO_DONE_BONUS;
-                spellInfo->AttributesEx3 |= SPELL_ATTR3_DONT_DISPLAY_RANGE;
-                spellInfo->AttributesEx5 |= SPELL_ATTR5_UNK15;
-                break;
-            case 57973: // Deadly Poison.
-            case 57968: // Instant Poison.
-            case 57978: // Wound Poison.
-            case 57982: // Anesthetic Poison.
-            case 3408: // Crippling Poison.
-            case 5761: // Mind-numbing Poison.
-                spellInfo->AttributesEx2 |= SPELL_ATTR2_PRESERVE_ENCHANT_IN_ARENA;
-                break;
             case 49462: // Call Ruby Drake
             case 49461: // Call Amber Drake
             case 49345: // Call Emerald Drake
@@ -3917,29 +3834,6 @@ void SpellMgr::LoadSpellInfoCorrections()
                 // Crashes client on pressing ESC
                 spellInfo->AttributesEx4 &= ~SPELL_ATTR4_TRIGGERED;
                 break;
-<<<<<<< HEAD
-				
-				case 24259: // Spell Lock
-=======
-            case 28374: // Gluth's Decimate
-            case 54426: // Gluth's Decimate
-                spellInfo->AttributesEx |= SPELL_ATTR1_CANT_TARGET_SELF;
-                break;
-            case 29307: // Infected Wounds (Zombie Chow)
-                spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
-                break;
-            case 18754: // Improved succubus - problems with apply if target is pet
-            case 18755:
-            case 18756:
-                spellInfo->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
-                break;
-            case 52212: // Death Knight's Death and Decay triggered spell
-                spellInfo->AttributesEx6 |= SPELL_ATTR6_CAN_TARGET_INVISIBLE;
-                break;
-            case 24259: // Spell Lock
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
-                spellInfo->Speed = 80.0f;
-                break;
             // ISLE OF CONQUEST SPELLS
             //
             case 66551: // Teleport
@@ -3947,15 +3841,6 @@ void SpellMgr::LoadSpellInfoCorrections()
                 break;
             // ENDOF ISLE OF CONQUEST SPELLS
             //
-            case 57108: // Fire Shield - EoE Drake
-                spellInfo->Effects[0].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
-                spellInfo->Effects[1].TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
-                break;
-            case 49224: // Magic Suppression
-            case 49610:
-            case 49611:
-                spellInfo->ProcCharges = 0;
-                break;
             default:
                 break;
         }

@@ -1003,7 +1003,7 @@ enum ReconnaissanceFlight
     VIC_SAY_6       = 6,
     PLANE_EMOTE     = 0,
 
-    SPELL_ENGINE     = 52255, // Engine on Fire
+    AURA_ENGINE     = 52255, // Engine on Fire
 
     SPELL_LAND      = 52226, // Land Flying Machine
     SPELL_CREDIT    = 53328 // Land Flying Machine Credit
@@ -1054,8 +1054,8 @@ public:
                         pilot->AI()->Talk(VIC_SAY_6);
                         break;
                     case 25:
-                        Talk(PLANE_EMOTE);
-                        DoCast(SPELL_ENGINE);
+                        me->AI()->Talk(PLANE_EMOTE);
+                        me->AI()->DoCast(AURA_ENGINE);
                         break;
                 }
         }

@@ -80,7 +80,6 @@
 #include "CalendarMgr.h"
 #include "BattlefieldMgr.h"
 #include "TransportMgr.h"
-#include "AnticheatMgr.h"
 
 ACE_Atomic_Op<ACE_Thread_Mutex, bool> World::m_stopEvent = false;
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
@@ -172,7 +171,10 @@ Player* World::FindPlayerInZone(uint32 zone)
             continue;
 
         if (player->IsInWorld() && player->GetZoneId() == zone)
+        {
+            // Used by the weather system. We return the player to broadcast the change weather message to him and all players in the zone.
             return player;
+        }
     }
     return NULL;
 }
@@ -475,8 +477,6 @@ void World::LoadConfigSettings(bool reload)
     rate_values[RATE_XP_KILL]     = sConfigMgr->GetFloatDefault("Rate.XP.Kill", 1.0f);
     rate_values[RATE_XP_QUEST]    = sConfigMgr->GetFloatDefault("Rate.XP.Quest", 1.0f);
     rate_values[RATE_XP_EXPLORE]  = sConfigMgr->GetFloatDefault("Rate.XP.Explore", 1.0f);
-    rate_values[RATE_XP_WEEKEND]  = sConfigMgr->GetFloatDefault("Rate.XP.Weekend", 1.5f);
-    m_int_configs[CONFIG_RATE_XP_WEEKEND_EVID] = sConfigMgr->GetIntDefault("Rate.XP.Weekend.EVID", 65);
     rate_values[RATE_REPAIRCOST]  = sConfigMgr->GetFloatDefault("Rate.RepairCost", 1.0f);
     if (rate_values[RATE_REPAIRCOST] < 0.0f)
     {
@@ -857,19 +857,6 @@ void World::LoadConfigSettings(bool reload)
     {
         TC_LOG_ERROR("server.loading", "MinPetitionSigns (%i) must be in range 0..9. Set to 9.", m_int_configs[CONFIG_MIN_PETITION_SIGNS]);
         m_int_configs[CONFIG_MIN_PETITION_SIGNS] = 9;
-    }
-    
-    rate_values[RATE_PVP_RANK_EXTRA_HONOR] = sConfigMgr->GetFloatDefault("PvPRank.Rate.ExtraHonor", 1);
-    std::string s_pvp_ranks = sConfigMgr->GetStringDefault("PvPRank.HKPerRank", "10,50,100,200,450,750,1300,2000,3500,6000,9500,15000,21000,30000");
-    char *c_pvp_ranks = const_cast<char*>(s_pvp_ranks.c_str());
-    for (int i = 0; i !=HKRANKMAX; i++)
-    {
-        if (i==0)
-            pvp_ranks[0] = 0;
-        else if (i==1)
-            pvp_ranks[1] = atoi(strtok (c_pvp_ranks, ","));
-        else
-            pvp_ranks[i] = atoi(strtok (NULL, ","));
     }
 
     m_int_configs[CONFIG_GM_LOGIN_STATE]        = sConfigMgr->GetIntDefault("GM.LoginState", 2);
@@ -1281,13 +1268,6 @@ void World::LoadConfigSettings(bool reload)
     m_bool_configs[CONFIG_PDUMP_NO_PATHS] = sConfigMgr->GetBoolDefault("PlayerDump.DisallowPaths", true);
     m_bool_configs[CONFIG_PDUMP_NO_OVERWRITE] = sConfigMgr->GetBoolDefault("PlayerDump.DisallowOverwrite", true);
     m_bool_configs[CONFIG_UI_QUESTLEVELS_IN_DIALOGS] = sConfigMgr->GetBoolDefault("UI.ShowQuestLevelsInDialogs", false);
-    
-    //anticheat
-    m_bool_configs[CONFIG_ANTICHEAT_ENABLE] = sConfigMgr->GetBoolDefault("Anticheat.Enable", true);
-    m_int_configs[CONFIG_ANTICHEAT_REPORTS_INGAME_NOTIFICATION] = sConfigMgr->GetIntDefault("Anticheat.ReportsForIngameWarnings", 70);
-    m_int_configs[CONFIG_ANTICHEAT_DETECTIONS_ENABLED] = sConfigMgr->GetIntDefault("Anticheat.DetectionsEnabled",31);
-    m_int_configs[CONFIG_ANTICHEAT_MAX_REPORTS_FOR_DAILY_REPORT] = sConfigMgr->GetIntDefault("Anticheat.MaxReportsForDailyReport",70);
-    m_bool_configs[CONFIG_BAN_PLAYER] = sConfigMgr->GetBoolDefault("Anticheat.Ban", true);
 
     // PvP Rank
     rate_values[RATE_PVP_RANK_EXTRA_HONOR] = sConfigMgr->GetFloatDefault("PvPRank.Rate.ExtraHonor", 0);
@@ -1326,15 +1306,6 @@ void World::LoadConfigSettings(bool reload)
         m_int_configs[CONFIG_PACKET_SPOOF_BANMODE] = BAN_ACCOUNT;
 
     m_int_configs[CONFIG_PACKET_SPOOF_BANDURATION] = sConfigMgr->GetIntDefault("PacketSpoof.BanDuration", 86400);
-
-    m_int_configs[CONFIG_BIRTHDAY_TIME] = sConfigMgr->GetIntDefault("BirthdayTime", 1222964635);
-    
-    //Reset Duel Cooldown
-    m_bool_configs[CONFIG_DUEL_RESET_COOLDOWN_ON_START] = sConfigMgr->GetBoolDefault("DuelReset.Cooldown.OnStart", false);
-    m_bool_configs[CONFIG_DUEL_RESET_COOLDOWN_ON_FINISH] = sConfigMgr->GetBoolDefault("DuelReset.Cooldown.OnFinish", false);
-    m_bool_configs[CONFIG_DUEL_RESET_ONLY_IN_WE_NEED] = sConfigMgr->GetBoolDefault("DuelReset.Cooldown.Only.In.Where.We.Have", false);
-    m_bool_configs[CONFIG_DUEL_RESET_COOLDOWN_RESET_ENERGY_ON_START] = sConfigMgr->GetBoolDefault("DuelReset.Cooldown.Reset.Energy.OnStart", false);
-    m_bool_configs[CONFIG_DUEL_RESET_HP_MP_RESTORE] = sConfigMgr->GetBoolDefault("DuelReset.Cooldown.Hp.Mp.Restore", false);
 
     // call ScriptMgr if we're reloading the configuration
     if (reload)
@@ -1705,7 +1676,7 @@ void World::SetInitialWorldSettings()
     sObjectMgr->LoadGameObjectForQuests();
 
     TC_LOG_INFO("server.loading", "Loading BattleMasters...");
-    sBattlegroundMgr->LoadBattleMastersEntry();                 // must be after load CreatureTemplate
+    sBattlegroundMgr->LoadBattleMastersEntry();
 
     TC_LOG_INFO("server.loading", "Loading GameTeleports...");
     sObjectMgr->LoadGameTele();
@@ -2355,11 +2326,9 @@ void World::SendGlobalText(const char* text, WorldSession* self)
 }
 
 /// Send a packet to all players (or players selected team) in the zone (except self if mentioned)
-bool World::SendZoneMessage(uint32 zone, WorldPacket* packet, WorldSession* self, uint32 team)
+void World::SendZoneMessage(uint32 zone, WorldPacket* packet, WorldSession* self, uint32 team)
 {
-    bool foundPlayerToSend = false;
     SessionMap::const_iterator itr;
-
     for (itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
     {
         if (itr->second &&
@@ -2370,11 +2339,8 @@ bool World::SendZoneMessage(uint32 zone, WorldPacket* packet, WorldSession* self
             (team == 0 || itr->second->GetPlayer()->GetTeam() == team))
         {
             itr->second->SendPacket(packet);
-            foundPlayerToSend = true;
         }
     }
-
-    return foundPlayerToSend;
 }
 
 /// Send a System Message to all players in the zone (except self if mentioned)
@@ -2946,7 +2912,7 @@ void World::ResetDailyQuests()
 {
     TC_LOG_INFO("misc", "Daily quests reset for all characters.");
 
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_RESET_CHARACTER_QUESTSTATUS_DAILY);
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_QUEST_STATUS_DAILY);
     CharacterDatabase.Execute(stmt);
 
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
@@ -2955,8 +2921,6 @@ void World::ResetDailyQuests()
 
     // change available dailies
     sPoolMgr->ChangeDailyQuests();
-    
-    sAnticheatMgr->ResetDailyReportStates();
 }
 
 void World::LoadDBAllowedSecurityLevel()
@@ -2982,7 +2946,7 @@ void World::ResetWeeklyQuests()
 {
     TC_LOG_INFO("misc", "Weekly quests reset for all characters.");
 
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_RESET_CHARACTER_QUESTSTATUS_WEEKLY);
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_QUEST_STATUS_WEEKLY);
     CharacterDatabase.Execute(stmt);
 
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
@@ -3000,7 +2964,7 @@ void World::ResetMonthlyQuests()
 {
     TC_LOG_INFO("misc", "Monthly quests reset for all characters.");
 
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_RESET_CHARACTER_QUESTSTATUS_MONTHLY);
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_QUEST_STATUS_MONTHLY);
     CharacterDatabase.Execute(stmt);
 
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
@@ -3042,9 +3006,7 @@ void World::ResetMonthlyQuests()
 
 void World::ResetEventSeasonalQuests(uint16 event_id)
 {
-    TC_LOG_INFO("misc", "Seasonal quests reset for all characters.");
-
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_RESET_CHARACTER_QUESTSTATUS_SEASONAL_BY_EVENT);
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_QUEST_STATUS_SEASONAL);
     stmt->setUInt16(0, event_id);
     CharacterDatabase.Execute(stmt);
 

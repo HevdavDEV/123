@@ -1606,12 +1606,8 @@ class npc_captain_brandon : public CreatureScript
                             break;
                         case EVENT_BRANDON_DIVINE_SHIELD:
                             if (HealthBelowPct(20))
-                            {
                                 DoCast(me, SPELL_DIVINE_SHIELD);
-                                Events.RescheduleEvent(EVENT_BRANDON_DIVINE_SHIELD, 5*MINUTE*IN_MILLISECONDS); 
-                            }
-                            else
-                                Events.ScheduleEvent(EVENT_BRANDON_DIVINE_SHIELD, 500);
+                            Events.ScheduleEvent(EVENT_BRANDON_DIVINE_SHIELD, 500);
                             break;
                         case EVENT_BRANDON_JUDGEMENT_OF_COMMAND:
                             DoCastVictim(SPELL_JUDGEMENT_OF_COMMAND);
@@ -2182,7 +2178,6 @@ class spell_svalna_remove_spear : public SpellScriptLoader
         }
 };
 
-// 72585 - Soul Missile
 class spell_icc_soul_missile : public SpellScriptLoader
 {
     public:
@@ -2192,15 +2187,15 @@ class spell_icc_soul_missile : public SpellScriptLoader
         {
             PrepareSpellScript(spell_icc_soul_missile_SpellScript);
 
-            void RelocateDest(SpellDestination& dest)
+            void RelocateDest()
             {
-                static Position const offset = { 0.0f, 0.0f, 200.0f, 0.0f };
-                dest.RelocateOffset(offset);
+                static Position const offset = {0.0f, 0.0f, 200.0f, 0.0f};
+                const_cast<WorldLocation*>(GetExplTargetDest())->RelocateOffset(offset);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_icc_soul_missile_SpellScript::RelocateDest, EFFECT_0, TARGET_DEST_CASTER);
+                OnCast += SpellCastFn(spell_icc_soul_missile_SpellScript::RelocateDest);
             }
         };
 

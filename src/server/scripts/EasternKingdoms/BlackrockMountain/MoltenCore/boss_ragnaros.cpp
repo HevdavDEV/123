@@ -233,7 +233,7 @@ class boss_ragnaros : public CreatureScript
                                 break;
                             case EVENT_SUBMERGE:
                             {
-                                if (!_isBanished)
+                                if (instance && !_isBanished)
                                 {
                                     //Creature spawning and ragnaros becomming unattackable
                                     //is not very well supported in the core //no it really isnt

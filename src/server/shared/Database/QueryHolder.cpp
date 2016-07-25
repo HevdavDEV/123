@@ -89,9 +89,10 @@ QueryResult SQLQueryHolder::GetResult(size_t index)
     if (index < m_queries.size())
     {
         ResultSet* result = m_queries[index].second.qresult;
-        if (!result || !result->GetRowCount() || !result->NextRow())
+        if (!result || !result->GetRowCount())
             return QueryResult(NULL);
 
+        result->NextRow();
         return QueryResult(result);
     }
     else

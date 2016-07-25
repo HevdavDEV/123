@@ -527,7 +527,7 @@ public:
         {
             me->setRegeneratingHealth(false);
             DoCast(SPELL_THREAT_PULSE);
-            Talk(BANNER_SAY);
+            me->AI()->Talk(BANNER_SAY);
             events.ScheduleEvent(EVENT_SPAWN, 3000);
         }
 

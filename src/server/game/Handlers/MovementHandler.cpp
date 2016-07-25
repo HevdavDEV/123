@@ -30,7 +30,6 @@
 #include "WaypointMovementGenerator.h"
 #include "InstanceSaveMgr.h"
 #include "ObjectMgr.h"
-#include "AnticheatMgr.h"
 
 #define MOVEMENT_PACKET_TIME_DELAY 0
 
@@ -355,9 +354,6 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recvData)
         // now client not include swimming flag in case jumping under water
         plrMover->SetInWater(!plrMover->IsInWater() || plrMover->GetBaseMap()->IsUnderWater(movementInfo.pos.GetPositionX(), movementInfo.pos.GetPositionY(), movementInfo.pos.GetPositionZ()));
     }
-    
-    if (plrMover)
-        sAnticheatMgr->StartHackDetection(plrMover, movementInfo, opcode);
 
     uint32 mstime = getMSTime();
     /*----------------------*/

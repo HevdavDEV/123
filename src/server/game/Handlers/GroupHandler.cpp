@@ -425,20 +425,11 @@ void WorldSession::HandleLootMethodOpcode(WorldPacket& recvData)
     /** error handling **/
     if (!group->IsLeader(GetPlayer()->GetGUID()))
         return;
-
-    if (lootMethod > NEED_BEFORE_GREED)
-        return;
-
-    if (lootThreshold < ITEM_QUALITY_UNCOMMON || lootThreshold > ITEM_QUALITY_ARTIFACT)
-        return;
-
-    if (lootMethod == MASTER_LOOT && !group->IsMember(lootMaster))
-        return;
     /********************/
 
     // everything's fine, do it
     group->SetLootMethod((LootMethod)lootMethod);
-    group->SetMasterLooterGuid(lootMaster);
+    group->SetLooterGuid(lootMaster);
     group->SetLootThreshold((ItemQualities)lootThreshold);
     group->SendUpdate();
 }
@@ -543,20 +534,11 @@ void WorldSession::HandleRaidTargetUpdateOpcode(WorldPacket& recvData)
     }
     else                                                    // target icon update
     {
-        if (group->isRaidGroup() && !group->IsLeader(GetPlayer()->GetGUID()) && !group->IsAssistant(GetPlayer()->GetGUID()))
+        if (!group->IsLeader(GetPlayer()->GetGUID()) && !group->IsAssistant(GetPlayer()->GetGUID()))
             return;
 
         uint64 guid;
         recvData >> guid;
-
-        if (IS_PLAYER_GUID(guid))
-        {
-            Player* target = ObjectAccessor::FindPlayer(guid);
-
-            if (!target || target->IsHostileTo(GetPlayer()))
-                return;
-        }
-
         group->SetTargetIcon(x, _player->GetGUID(), guid);
     }
 }

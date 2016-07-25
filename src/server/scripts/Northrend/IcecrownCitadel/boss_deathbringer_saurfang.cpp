@@ -333,7 +333,6 @@ class boss_deathbringer_saurfang : public CreatureScript
             void JustReachedHome() OVERRIDE
             {
                 _JustReachedHome();
-                Reset();
                 instance->SetBossState(DATA_DEATHBRINGER_SAURFANG, FAIL);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_MARK_OF_THE_FALLEN_CHAMPION);
             }
@@ -377,16 +376,7 @@ class boss_deathbringer_saurfang : public CreatureScript
             void JustSummoned(Creature* summon) OVERRIDE
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true))
-                {
-                    if (target->GetTransport())
-                    {
-                        summon->DespawnOrUnsummon(1);
-                        EnterEvadeMode();
-                        return;
-                    }
-
                     summon->AI()->AttackStart(target);
-                }
 
                 summon->CastSpell(summon, SPELL_BLOOD_LINK_BEAST, true);
                 summon->CastSpell(summon, SPELL_RESISTANT_SKIN, true);
@@ -409,12 +399,6 @@ class boss_deathbringer_saurfang : public CreatureScript
 
             void SpellHitTarget(Unit* target, SpellInfo const* spell) OVERRIDE
             {
-                if (target->GetTransport())
-                {
-                    EnterEvadeMode();
-                    return;
-                }
-
                 switch (spell->Id)
                 {
                     case SPELL_MARK_OF_THE_FALLEN_CHAMPION:
@@ -588,14 +572,6 @@ class boss_deathbringer_saurfang : public CreatureScript
                     default:
                         break;
                 }
-            }
-
-            bool CanAIAttack(Unit const* target) const OVERRIDE
-            {
-                if (target->GetTransport())
-                    return false;
-
-                return true;
             }
 
             static uint32 const FightWonValue;

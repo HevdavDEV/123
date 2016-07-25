@@ -72,8 +72,6 @@ CharStartOutfitEntry const* GetCharStartOutfitEntry(uint8 race, uint8 class_, ui
 
 LFGDungeonEntry const* GetLFGDungeon(uint32 mapId, Difficulty difficulty);
 
-uint32 GetDefaultMapLight(uint32 mapId);
-
 extern DBCStorage <AchievementEntry>             sAchievementStore;
 extern DBCStorage <AchievementCriteriaEntry>     sAchievementCriteriaStore;
 extern DBCStorage <AreaTableEntry>               sAreaStore;// recommend access using functions
@@ -125,11 +123,7 @@ extern DBCStorage <GtRegenMPPerSptEntry>         sGtRegenMPPerSptStore;
 extern DBCStorage <HolidaysEntry>                sHolidaysStore;
 extern DBCStorage <ItemEntry>                    sItemStore;
 extern DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore;
-<<<<<<< HEAD
 extern DBCStorage <ItemDisplayInfoEntry>		 sItemDisplayInfoStore;  // custom
-=======
-extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore; // custom
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
 extern DBCStorage <ItemExtendedCostEntry>        sItemExtendedCostStore;
 extern DBCStorage <ItemLimitCategoryEntry>       sItemLimitCategoryStore;
 extern DBCStorage <ItemRandomPropertiesEntry>    sItemRandomPropertiesStore;

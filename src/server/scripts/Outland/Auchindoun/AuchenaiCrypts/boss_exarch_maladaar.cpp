@@ -61,11 +61,7 @@ public:
 
     struct npc_stolen_soulAI : public ScriptedAI
     {
-        npc_stolen_soulAI(Creature* creature) : ScriptedAI(creature)
-        {
-            myClass = CLASS_NONE;
-            Class_Timer = 1000;
-        }
+        npc_stolen_soulAI(Creature* creature) : ScriptedAI(creature) { }
 
         uint8 myClass;
         uint32 Class_Timer;

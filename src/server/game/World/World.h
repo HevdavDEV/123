@@ -159,14 +159,9 @@ enum WorldBoolConfigs
     CONFIG_ALLOW_TICKETS,
     CONFIG_DBC_ENFORCE_ITEM_ATTRIBUTES,
     CONFIG_PRESERVE_CUSTOM_CHANNELS,
-<<<<<<< HEAD
     CONFIG_ARENA_2v2_TEAM_ENABLE,
     CONFIG_ARENA_3v3_TEAM_ENABLE,
     CONFIG_ARENA_5v5_TEAM_ENABLE,
-=======
-    CONFIG_ANTICHEAT_ENABLE,
-    CONFIG_BAN_PLAYER,
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
     CONFIG_PDUMP_NO_PATHS,
     CONFIG_PDUMP_NO_OVERWRITE,
     CONFIG_QUEST_IGNORE_AUTO_ACCEPT,
@@ -178,15 +173,7 @@ enum WorldBoolConfigs
     CONFIG_EVENT_ANNOUNCE,
     CONFIG_STATS_LIMITS_ENABLE,
     CONFIG_INSTANCES_RESET_ANNOUNCE,
-<<<<<<< HEAD
     CONFIG_DISABLE_HAPPINESS,
-=======
-    CONFIG_DUEL_RESET_COOLDOWN_ON_START,
-    CONFIG_DUEL_RESET_COOLDOWN_ON_FINISH,
-    CONFIG_DUEL_RESET_ONLY_IN_WE_NEED,
-    CONFIG_DUEL_RESET_HP_MP_RESTORE,
-    CONFIG_DUEL_RESET_COOLDOWN_RESET_ENERGY_ON_START,
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
     BOOL_CONFIG_VALUE_COUNT
 };
 
@@ -351,11 +338,7 @@ enum WorldIntConfigs
     CONFIG_PRESERVE_CUSTOM_CHANNEL_DURATION,
     CONFIG_PERSISTENT_CHARACTER_CLEAN_FLAGS,
     CONFIG_LFG_OPTIONSMASK,
-    CONFIG_ANTICHEAT_REPORTS_INGAME_NOTIFICATION,
-    CONFIG_ANTICHEAT_MAX_REPORTS_FOR_DAILY_REPORT,
     CONFIG_MAX_INSTANCES_PER_HOUR,
-    CONFIG_ANTICHEAT_DETECTIONS_ENABLED,
-    CONFIG_RATE_XP_WEEKEND_EVID,
     CONFIG_WARDEN_CLIENT_RESPONSE_DELAY,
     CONFIG_WARDEN_CLIENT_CHECK_HOLDOFF,
     CONFIG_WARDEN_CLIENT_FAIL_ACTION,
@@ -378,7 +361,6 @@ enum WorldIntConfigs
     CONFIG_BG_REWARD_WINNER_ARENA_LAST,
     CONFIG_BG_REWARD_LOSER_HONOR_FIRST,
     CONFIG_BG_REWARD_LOSER_HONOR_LAST,
-    CONFIG_BIRTHDAY_TIME,
     INT_CONFIG_VALUE_COUNT
 };
 
@@ -445,13 +427,8 @@ enum Rates
     RATE_DURABILITY_LOSS_PARRY,
     RATE_DURABILITY_LOSS_ABSORB,
     RATE_DURABILITY_LOSS_BLOCK,
-<<<<<<< HEAD
 	RATE_PVP_RANK_EXTRA_HONOR,
-=======
-    RATE_PVP_RANK_EXTRA_HONOR,
->>>>>>> b0f53fc2f4aa54263df5b3b7bcc69bb2ec9f00e2
     RATE_MOVESPEED,
-    RATE_XP_WEEKEND,
     MAX_RATES
 };
 
@@ -706,11 +683,9 @@ class World
         void SendGMText(int32 string_id, ...);
         void SendGlobalMessage(WorldPacket* packet, WorldSession* self = 0, uint32 team = 0);
         void SendGlobalGMMessage(WorldPacket* packet, WorldSession* self = 0, uint32 team = 0);
-        bool SendZoneMessage(uint32 zone, WorldPacket* packet, WorldSession* self = 0, uint32 team = 0);
+        void SendZoneMessage(uint32 zone, WorldPacket* packet, WorldSession* self = 0, uint32 team = 0);
         void SendZoneText(uint32 zone, const char *text, WorldSession* self = 0, uint32 team = 0);
         void SendServerMessage(ServerMessageType type, const char *text = "", Player* player = NULL);
-        
-        uint32 pvp_ranks[HKRANKMAX];
 
         uint32 pvp_ranks[HKRANKMAX];
 

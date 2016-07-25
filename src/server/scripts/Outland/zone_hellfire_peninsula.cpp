@@ -162,13 +162,11 @@ public:
         }
 
         void MoveInLineOfSight(Unit* who) OVERRIDE
+
         {
             if (!ryga && who->GetEntry() == NPC_RYGA && me->IsWithinDistInMap(who, 15.0f))
                 if (Creature* temp = who->ToCreature())
                     ryga = temp;
-
-            if (!me->HasAura(SPELL_ANCESTRAL_WOLF_BUFF))
-                DoCast(me, SPELL_ANCESTRAL_WOLF_BUFF, true);
 
             npc_escortAI::MoveInLineOfSight(who);
         }

@@ -97,18 +97,8 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 
     recvData >> guid >> menuId >> gossipListId;
 
-    if (!_player->PlayerTalkClass->GetGossipMenu().GetItem(gossipListId))
-    {
-        recvData.rfinish();
-        return;
-    }
-
     if (_player->PlayerTalkClass->IsGossipOptionCoded(gossipListId))
         recvData >> code;
-
-    // Prevent cheating on C++ scripted menus
-    if (_player->PlayerTalkClass->GetGossipMenu().GetSenderGUID() != guid)
-        return;
 
     Creature* unit = NULL;
     GameObject* go = NULL;
@@ -161,8 +151,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
         else
         {
             go->AI()->GossipSelectCode(_player, menuId, gossipListId, code.c_str());
-            if (!sScriptMgr->OnGossipSelectCode(_player, go, _player->PlayerTalkClass->GetGossipOptionSender(gossipListId), _player->PlayerTalkClass->GetGossipOptionAction(gossipListId), code.c_str()))
-                _player->OnGossipSelect(go, gossipListId, menuId);
+            sScriptMgr->OnGossipSelectCode(_player, go, _player->PlayerTalkClass->GetGossipOptionSender(gossipListId), _player->PlayerTalkClass->GetGossipOptionAction(gossipListId), code.c_str());
         }
     }
     else
@@ -1176,6 +1165,7 @@ void WorldSession::HandleMoveRootAck(WorldPacket& recvData)
 void WorldSession::HandleSetActionBarToggles(WorldPacket& recvData)
 {
     uint8 actionBar;
+
     recvData >> actionBar;
 
     if (!GetPlayer())                                        // ignore until not logged (check needed because STATUS_AUTHED)

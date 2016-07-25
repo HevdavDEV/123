@@ -233,7 +233,10 @@ public:
 
     struct npc_lord_gregor_lescovarAI : public npc_escortAI
     {
-        npc_lord_gregor_lescovarAI(Creature* creature) : npc_escortAI(creature) { }
+        npc_lord_gregor_lescovarAI(Creature* creature) : npc_escortAI(creature)
+        {
+            creature->RestoreFaction();
+        }
 
         uint32 uiTimer;
         uint32 uiPhase;

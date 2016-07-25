@@ -216,7 +216,7 @@ void AuthSocket::OnAccept(void)
 
 void AuthSocket::OnClose(void)
 {
-    TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: AuthSocket::OnClose");
+    TC_LOG_DEBUG("server.authserver", "AuthSocket::OnClose");
 }
 
 // Read the packet from the client
@@ -235,7 +235,7 @@ void AuthSocket::OnRead()
             ++challengesInARow;
             if (challengesInARow == MAX_AUTH_LOGON_CHALLENGES_IN_A_ROW)
             {
-                TC_LOG_WARN("server.authserver", "Junky & Symbolix Repack: Got %u AUTH_LOGON_CHALLENGE in a row from '%s', possible ongoing DoS", challengesInARow, socket().getRemoteAddress().c_str());
+                TC_LOG_WARN("server.authserver", "Got %u AUTH_LOGON_CHALLENGE in a row from '%s', possible ongoing DoS", challengesInARow, socket().getRemoteAddress().c_str());
                 socket().shutdown();
                 return;
             }
@@ -246,7 +246,7 @@ void AuthSocket::OnRead()
             ++challengesInARow;
             if (challengesInARow == MAX_AUTH_LOGON_CHALLENGES_IN_A_ROW)
             {
-                TC_LOG_WARN("server.authserver", "Junky & Symbolix Repack: Got %u AUTH_LOGON_CHALLENGE in a row from '%s', possible ongoing DoS", challengesInARow, socket().getRemoteAddress().c_str());
+                TC_LOG_WARN("server.authserver", "Got %u AUTH_LOGON_CHALLENGE in a row from '%s', possible ongoing DoS", challengesInARow, socket().getRemoteAddress().c_str());
                 socket().shutdown();
                 return;
             }
@@ -259,11 +259,11 @@ void AuthSocket::OnRead()
         {
             if ((uint8)table[i].cmd == _cmd && (table[i].status == STATUS_CONNECTED || (_authed && table[i].status == STATUS_AUTHED)))
             {
-                TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: Got data for cmd %u recv length %u", (uint32)_cmd, (uint32)socket().recv_len());
+                TC_LOG_DEBUG("server.authserver", "Got data for cmd %u recv length %u", (uint32)_cmd, (uint32)socket().recv_len());
 
                 if (!(*this.*table[i].handler)())
                 {
-                    TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: Command handler failed for cmd %u recv length %u", (uint32)_cmd, (uint32)socket().recv_len());
+                    TC_LOG_DEBUG("server.authserver", "Command handler failed for cmd %u recv length %u", (uint32)_cmd, (uint32)socket().recv_len());
                     return;
                 }
                 break;
@@ -273,7 +273,7 @@ void AuthSocket::OnRead()
         // Report unknown packets in the error log
         if (i == AUTH_TOTAL_COMMANDS)
         {
-            TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Got unknown packet from '%s'", socket().getRemoteAddress().c_str());
+            TC_LOG_ERROR("server.authserver", "Got unknown packet from '%s'", socket().getRemoteAddress().c_str());
             socket().shutdown();
             return;
         }
@@ -332,10 +332,12 @@ bool AuthSocket::_HandleLogonChallenge()
 
     socket().recv((char *)&buf[0], 4);
 
-    EndianConvertPtr<uint16>(&buf[0]);
+#if TRINITY_ENDIAN == TRINITY_BIGENDIAN
+    EndianConvert(*((uint16*)(buf[0])));
+#endif
 
     uint16 remaining = ((sAuthLogonChallenge_C *)&buf[0])->size;
-    TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack:[AuthChallenge] got header, body is %#04x bytes", remaining);
+    TC_LOG_DEBUG("server.authserver", "[AuthChallenge] got header, body is %#04x bytes", remaining);
 
     if ((remaining < sizeof(sAuthLogonChallenge_C) - buf.size()) || (socket().recv_len() < remaining))
         return false;
@@ -347,18 +349,20 @@ bool AuthSocket::_HandleLogonChallenge()
 
     // Read the remaining of the packet
     socket().recv((char *)&buf[4], remaining);
-    TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: [AuthChallenge] got full packet, %#04x bytes", ch->size);
-    TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: [AuthChallenge] name(%d): '%s'", ch->I_len, ch->I);
+    TC_LOG_DEBUG("server.authserver", "[AuthChallenge] got full packet, %#04x bytes", ch->size);
+    TC_LOG_DEBUG("server.authserver", "[AuthChallenge] name(%d): '%s'", ch->I_len, ch->I);
 
     // BigEndian code, nop in little endian case
     // size already converted
-    EndianConvertPtr<uint32>(&ch->gamename[0]);
+#if TRINITY_ENDIAN == TRINITY_BIGENDIAN
+    EndianConvert(*((uint32*)(&ch->gamename[0])));
     EndianConvert(ch->build);
-    EndianConvertPtr<uint32>(&ch->platform[0]);
-    EndianConvertPtr<uint32>(&ch->os[0]);
-    EndianConvertPtr<uint32>(&ch->country[0]);
+    EndianConvert(*((uint32*)(&ch->platform[0])));
+    EndianConvert(*((uint32*)(&ch->os[0])));
+    EndianConvert(*((uint32*)(&ch->country[0])));
     EndianConvert(ch->timezone_bias);
     EndianConvert(ch->ip);
+#endif
 
     ByteBuffer pkt;
 
@@ -386,7 +390,7 @@ bool AuthSocket::_HandleLogonChallenge()
     if (result)
     {
         pkt << uint8(WOW_FAIL_BANNED);
-        TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: '%s:%d' [AuthChallenge] Banned ip tries to login!", socket().getRemoteAddress().c_str(), socket().getRemotePort());
+        TC_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] Banned ip tries to login!", socket().getRemoteAddress().c_str(), socket().getRemotePort());
     }
     else
     {
@@ -404,13 +408,8 @@ bool AuthSocket::_HandleLogonChallenge()
             bool locked = false;
             if (fields[2].GetUInt8() == 1)                  // if ip is locked
             {
-<<<<<<< HEAD
-                TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: [AuthChallenge] Account '%s' is locked to IP - '%s'", _login.c_str(), fields[3].GetCString());
-                TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: [AuthChallenge] Player address is '%s'", ip_address.c_str());
-=======
-                TC_LOG_DEBUG("server.authserver", "[AuthChallenge] Account '%s' is locked to IP - '%s'", _login.c_str(), fields[4].GetCString());
+                TC_LOG_DEBUG("server.authserver", "[AuthChallenge] Account '%s' is locked to IP - '%s'", _login.c_str(), fields[3].GetCString());
                 TC_LOG_DEBUG("server.authserver", "[AuthChallenge] Player address is '%s'", ip_address.c_str());
->>>>>>> 818278a71e91613e07eba7444f1bb2b7afef23a0
 
                 if (strcmp(fields[4].GetCString(), ip_address.c_str()) != 0)
                 {
@@ -795,7 +794,9 @@ bool AuthSocket::_HandleReconnectChallenge()
 
     socket().recv((char *)&buf[0], 4);
 
-    EndianConvertPtr<uint16>(&buf[0]);
+#if TRINITY_ENDIAN == TRINITY_BIGENDIAN
+    EndianConvert(*((uint16*)(buf[0])));
+#endif
 
     uint16 remaining = ((sAuthLogonChallenge_C *)&buf[0])->size;
     TC_LOG_DEBUG("server.authserver", "[ReconnectChallenge] got header, body is %#04x bytes", remaining);

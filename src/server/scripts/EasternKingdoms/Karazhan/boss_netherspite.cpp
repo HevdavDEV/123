@@ -247,13 +247,13 @@ public:
             PortalPhase = false;
             Talk(EMOTE_PHASE_BANISH);
 
-            for (uint8 i = 0; i < 3; ++i)
+            for (int i=0; i<3; ++i)
                 me->RemoveAurasDueToSpell(NetherBuff[i]);
         }
 
         void HandleDoors(bool open) // Massive Door switcher
         {
-            if (GameObject* Door = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_GO_MASSIVE_DOOR) ))
+            if (GameObject* Door = GameObject::GetGameObject(*me, instance ? instance->GetData64(DATA_GO_MASSIVE_DOOR) : 0))
                 Door->SetGoState(open ? GO_STATE_ACTIVE : GO_STATE_READY);
         }
 

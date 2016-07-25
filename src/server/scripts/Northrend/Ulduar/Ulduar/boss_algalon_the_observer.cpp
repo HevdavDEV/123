@@ -652,6 +652,7 @@ class boss_algalon_the_observer : public CreatureScript
                             break;
                         case EVENT_OUTRO_2:
                             _EnterEvadeMode();
+                            me->AddUnitState(UNIT_STATE_EVADE);
                             me->GetMotionMaster()->MovePoint(POINT_ALGALON_OUTRO, AlgalonOutroPos);
                             break;
                         case EVENT_OUTRO_3:
@@ -1206,9 +1207,8 @@ class spell_algalon_big_bang : public SpellScriptLoader
 
             void CheckTargets()
             {
-                if (GetCaster()->GetTypeId() == TYPEID_UNIT)
-                    if (!_targetCount)
-                        GetCaster()->GetAI()->DoAction(ACTION_ASCEND);
+                if (!_targetCount)
+                    GetCaster()->GetAI()->DoAction(ACTION_ASCEND);
             }
 
             void Register() OVERRIDE
@@ -1253,7 +1253,6 @@ class spell_algalon_remove_phase : public SpellScriptLoader
         }
 };
 
-// 62295 - Cosmic Smash
 class spell_algalon_cosmic_smash : public SpellScriptLoader
 {
     public:
@@ -1263,15 +1262,16 @@ class spell_algalon_cosmic_smash : public SpellScriptLoader
         {
             PrepareSpellScript(spell_algalon_cosmic_smash_SpellScript);
 
-            void ModDestHeight(SpellDestination& dest)
+            void ModDestHeight(SpellEffIndex /*effIndex*/)
             {
-                Position const offset = { 0.0f, 0.0f, 65.0f, 0.0f };
-                dest.RelocateOffset(offset);
+                Position offset = {0.0f, 0.0f, 65.0f, 0.0f};
+                const_cast<WorldLocation*>(GetExplTargetDest())->RelocateOffset(offset);
+                GetHitDest()->RelocateOffset(offset);
             }
 
             void Register() OVERRIDE
             {
-                OnDestinationTargetSelect += SpellDestinationTargetSelectFn(spell_algalon_cosmic_smash_SpellScript::ModDestHeight, EFFECT_0, TARGET_DEST_CASTER_SUMMON);
+                OnEffectLaunch += SpellEffectFn(spell_algalon_cosmic_smash_SpellScript::ModDestHeight, EFFECT_0, SPELL_EFFECT_SUMMON);
             }
         };
 

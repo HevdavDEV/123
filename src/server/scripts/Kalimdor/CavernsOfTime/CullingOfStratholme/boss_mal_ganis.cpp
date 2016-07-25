@@ -69,9 +69,9 @@ public:
         return GetInstanceAI<boss_mal_ganisAI>(creature);
     }
 
-    struct boss_mal_ganisAI : public BossAI
+    struct boss_mal_ganisAI : public ScriptedAI
     {
-        boss_mal_ganisAI(Creature* creature) : BossAI(creature, DATA_MAL_GANIS_EVENT)
+        boss_mal_ganisAI(Creature* creature) : ScriptedAI(creature)
         {
             instance = creature->GetInstanceScript();
         }
@@ -93,22 +93,20 @@ public:
 
         void Reset() OVERRIDE
         {
-            _Reset();
-            bYelled = false;
-            bYelled2 = false;
-            Phase = COMBAT;
-            uiCarrionSwarmTimer = 6000;
-            uiMindBlastTimer = 11000;
-            uiVampiricTouchTimer = urand(10000, 15000);
-            uiSleepTimer = urand(15000, 20000);
-            uiOutroTimer = 1000;
+             bYelled = false;
+             bYelled2 = false;
+             Phase = COMBAT;
+             uiCarrionSwarmTimer = 6000;
+             uiMindBlastTimer = 11000;
+             uiVampiricTouchTimer = urand(10000, 15000);
+             uiSleepTimer = urand(15000, 20000);
+             uiOutroTimer = 1000;
 
-            instance->SetData(DATA_MAL_GANIS_EVENT, NOT_STARTED);
+             instance->SetData(DATA_MAL_GANIS_EVENT, NOT_STARTED);
         }
 
         void EnterCombat(Unit* /*who*/) OVERRIDE
         {
-            _EnterCombat();
             Talk(SAY_AGGRO);
             instance->SetData(DATA_MAL_GANIS_EVENT, IN_PROGRESS);
         }
@@ -149,7 +147,7 @@ public:
                         return;
                     }
 
-                    if (Creature* pArthas = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ARTHAS)))
+                    if (Creature* pArthas = me->GetCreature(*me, instance ? instance->GetData64(DATA_ARTHAS) : 0))
                         if (pArthas->isDead())
                         {
                             EnterEvadeMode();
@@ -198,7 +196,7 @@ public:
                                 uiOutroTimer = 8000;
                                 break;
                             case 2:
-                                me->SetTarget(instance->GetData64(DATA_ARTHAS));
+                                me->SetTarget(instance ? instance->GetData64(DATA_ARTHAS) : 0);
                                 me->HandleEmoteCommand(29);
                                 Talk(SAY_ESCAPE_SPEECH_2);
                                 ++uiOutroStep;
@@ -231,8 +229,6 @@ public:
             DoCastAOE(SPELL_MAL_GANIS_KILL_CREDIT);
             // give achievement credit and LFG rewards to players. criteria use spell 58630 which doesn't exist, but it was created in spell_dbc
             DoCastAOE(SPELL_KILL_CREDIT);
-            _JustDied();
-            instance->SetBossState(DATA_MAL_GANIS_EVENT, DONE);
         }
 
         void KilledUnit(Unit* victim) OVERRIDE

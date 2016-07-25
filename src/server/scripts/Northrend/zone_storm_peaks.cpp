@@ -290,23 +290,22 @@ public:
                         events.ScheduleEvent(EVENT_CHECK_AREA, 5000);
                     break;
                 case EVENT_REACHED_HOME:
-                    if (Vehicle* vehicle = me->GetVehicleKit())
-                        if (Unit* player = vehicle->GetPassenger(0))
-                            if (player->GetTypeId() == TYPEID_PLAYER)
+                    Unit* player = me->GetVehicleKit()->GetPassenger(0);
+                    if (player && player->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        // for each prisoner on drake, give credit
+                        for (uint8 i = 1; i < 4; ++i)
+                            if (Unit* prisoner = me->GetVehicleKit()->GetPassenger(i))
                             {
-                                // for each prisoner on drake, give credit
-                                for (uint8 i = 1; i < 4; ++i)
-                                    if (Unit* prisoner = me->GetVehicleKit()->GetPassenger(i))
-                                    {
-                                        if (prisoner->GetTypeId() != TYPEID_UNIT)
-                                            return;
-                                        prisoner->CastSpell(player, SPELL_KILL_CREDIT_PRISONER, true);
-                                        prisoner->CastSpell(prisoner, SPELL_SUMMON_LIBERATED, true);
-                                        prisoner->ExitVehicle();
-                                    }
-                                me->CastSpell(me, SPELL_KILL_CREDIT_DRAKE, true);
-                                player->ExitVehicle();
+                                if (prisoner->GetTypeId() != TYPEID_UNIT)
+                                    return;
+                                prisoner->CastSpell(player, SPELL_KILL_CREDIT_PRISONER, true);
+                                prisoner->CastSpell(prisoner, SPELL_SUMMON_LIBERATED, true);
+                                prisoner->ExitVehicle();
                             }
+                        me->CastSpell(me, SPELL_KILL_CREDIT_DRAKE, true);
+                        player->ExitVehicle();
+                    }
                     break;
             }
         }
@@ -452,13 +451,7 @@ public:
 
     struct npc_brann_bronzebeard_keystoneAI : public ScriptedAI
     {
-        npc_brann_bronzebeard_keystoneAI(Creature* creature) : ScriptedAI(creature)
-        {
-            memset(&objectGUID, 0, sizeof(objectGUID));
-            playerGUID = 0;
-            voiceGUID = 0;
-            objectCounter = 0;
-        }
+        npc_brann_bronzebeard_keystoneAI(Creature* creature) : ScriptedAI(creature) { }
 
         void Reset() OVERRIDE
         {
@@ -504,7 +497,7 @@ public:
                         me->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_NONE);
                         if (Creature* voice = ObjectAccessor::GetCreature(*me, voiceGUID))
                         {
-                            voice->CastSpell(voice, SPELL_RESURRECTION);
+                            voice->AI()->DoCast(voice, SPELL_RESURRECTION);
                             if (Player* player = ObjectAccessor::GetPlayer(*me, playerGUID))
                                 voice->AI()->Talk(SAY_VOICE_1, player);
                         }
@@ -546,7 +539,7 @@ public:
                         break;
                     case EVENT_SCRIPT_9:
                         if (Creature* voice = ObjectAccessor::GetCreature(*me, voiceGUID))
-                            voice->CastSpell(voice, SPELL_RESURRECTION);
+                            voice->AI()->DoCast(voice, SPELL_RESURRECTION);
                         events.ScheduleEvent(EVENT_SCRIPT_10, 6000);
                         break;
                     case EVENT_SCRIPT_10:
@@ -641,11 +634,7 @@ public:
 
     struct npc_king_jokkum_vehicleAI : public VehicleAI
     {
-        npc_king_jokkum_vehicleAI(Creature* creature) : VehicleAI(creature)
-        {
-            playerGUID = 0;
-            pathEnd = false;
-        }
+        npc_king_jokkum_vehicleAI(Creature* creature) : VehicleAI(creature) { }
 
         void Reset() OVERRIDE
         {
@@ -792,6 +781,37 @@ class spell_veranus_summon : public SpellScriptLoader
         }
 };
 
+/*#####
+# spell_jokkum_eject_all
+#####*/
+
+class spell_jokkum_eject_all : public SpellScriptLoader
+{
+    public: spell_jokkum_eject_all() : SpellScriptLoader("spell_jokkum_eject_all") { }
+
+        class spell_jokkum_eject_all_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_jokkum_eject_all_SpellScript);
+
+            void HandleScriptEffect(SpellEffIndex /* effIndex */)
+            {
+                if (Unit* caster = GetCaster())
+                    if (caster->IsVehicle())
+                        caster->GetVehicleKit()->RemoveAllPassengers();
+            }
+
+            void Register() OVERRIDE
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_jokkum_eject_all_SpellScript::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+            }
+        };
+
+        SpellScript* GetSpellScript() const OVERRIDE
+        {
+            return new spell_jokkum_eject_all_SpellScript();
+        }
+};
+
 enum CloseRift
 {
     SPELL_DESPAWN_RIFT          = 61665
@@ -851,5 +871,6 @@ void AddSC_storm_peaks()
     new npc_king_jokkum_vehicle();
     new spell_jokkum_scriptcast();
     new spell_veranus_summon();
+    new spell_jokkum_eject_all();
     new spell_close_rift();
 }

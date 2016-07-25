@@ -111,8 +111,8 @@ extern int main(int argc, char** argv)
         return 1;
     }
 
-    TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: (authserver)", _FULLVERSION);
-    TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: Emulator Authserver");
+    TC_LOG_INFO("server.authserver", "InvisibleCore (authserver)", _FULLVERSION);
+    TC_LOG_INFO("server.authserver", "InvisibleCore 3.3.5a Emulator Authserver");
     TC_LOG_INFO("server.authserver", "Using configuration file %s.", configFile);
 
     TC_LOG_WARN("server.authserver", "%s (Library: %s)", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
@@ -123,17 +123,17 @@ extern int main(int argc, char** argv)
     ACE_Reactor::instance(new ACE_Reactor(new ACE_TP_Reactor(), true), true);
 #endif
 
-	TC_LOG_DEBUG("server.authserver", "Junky & Symbolix Repack: Max allowed open files is %d", ACE::max_handles());
+	TC_LOG_DEBUG("server.authserver", "InvisibleCore: Max allowed open files is %d", ACE::max_handles());
 
     // authserver PID file creation
     std::string pidFile = sConfigMgr->GetStringDefault("PidFile", "");
     if (!pidFile.empty())
     {
         if (uint32 pid = CreatePIDFile(pidFile))
-			TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack:: Daemon PID: %u\n", pid);
+			TC_LOG_INFO("server.authserver", "InvisibleCore: Daemon PID: %u\n", pid);
         else
         {
-			TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack:: create PID file %s.\n", pidFile.c_str());
+			TC_LOG_ERROR("server.authserver", "InvisibleCore: Cannot create PID file %s.\n", pidFile.c_str());
             return 1;
         }
     }
@@ -146,7 +146,7 @@ extern int main(int argc, char** argv)
     sRealmList->Initialize(sConfigMgr->GetIntDefault("RealmsStateUpdateDelay", 20));
     if (sRealmList->size() == 0)
     {
-		TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: No valid realms specified.");
+		TC_LOG_ERROR("server.authserver", "InvisibleCore: No valid realms specified.");
         return 1;
     }
 
@@ -156,7 +156,7 @@ extern int main(int argc, char** argv)
     int32 rmport = sConfigMgr->GetIntDefault("RealmServerPort", 3724);
     if (rmport < 0 || rmport > 0xFFFF)
     {
-		TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Specified port out of allowed range (1-65535)");
+		TC_LOG_ERROR("server.authserver", "InvisibleCore: Specified port out of allowed range (1-65535)");
         return 1;
     }
 
@@ -166,7 +166,7 @@ extern int main(int argc, char** argv)
 
     if (acceptor.open(bind_addr, ACE_Reactor::instance(), ACE_NONBLOCK) == -1)
     {
-		TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Auth server can not bind to %s:%d", bind_ip.c_str(), rmport);
+		TC_LOG_ERROR("server.authserver", "InvisibleCore: Auth server can not bind to %s:%d", bind_ip.c_str(), rmport);
         return 1;
     }
 
@@ -178,18 +178,12 @@ extern int main(int argc, char** argv)
     Handler.register_handler(SIGINT, &SignalINT);
     Handler.register_handler(SIGTERM, &SignalTERM);
 
-#if defined(_WIN32) || defined(__linux__)
-    
     ///- Handle affinity for multiple processors and process priority
     uint32 affinity = sConfigMgr->GetIntDefault("UseProcessors", 0);
     bool highPriority = sConfigMgr->GetBoolDefault("ProcessPriority", false);
 
 #ifdef _WIN32 // Windows
-    
-    HANDLE hProcess = GetCurrentProcess();
-    if (affinity > 0)
     {
-<<<<<<< HEAD
         HANDLE hProcess = GetCurrentProcess();
 
         if (affinity > 0)
@@ -202,49 +196,24 @@ extern int main(int argc, char** argv)
                 ULONG_PTR currentAffinity = affinity & appAff;            // remove non accessible processors
 
                 if (!currentAffinity)
-					TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Processors marked in UseProcessors bitmask (hex) %x are not accessible for the authserver. Accessible processors bitmask (hex): %x", affinity, appAff);
+					TC_LOG_ERROR("server.authserver", "InvisibleCore: Processors marked in UseProcessors bitmask (hex) %x are not accessible for the authserver. Accessible processors bitmask (hex): %x", affinity, appAff);
                 else if (SetProcessAffinityMask(hProcess, currentAffinity))
-					TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: Using processors (bitmask, hex): %x", currentAffinity);
+					TC_LOG_INFO("server.authserver", "InvisibleCore: Using processors (bitmask, hex): %x", currentAffinity);
                 else
-					TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Can't set used processors (hex): %x", currentAffinity);
+					TC_LOG_ERROR("server.authserver", "InvisibleCore: Can't set used processors (hex): %x", currentAffinity);
             }
         }
 
         if (highPriority)
         {
             if (SetPriorityClass(hProcess, HIGH_PRIORITY_CLASS))
-				TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: authserver process priority class set to HIGH");
+				TC_LOG_INFO("server.authserver", "InvisibleCore: authserver process priority class set to HIGH");
             else
-				TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Can't set authserver process priority class.");
-=======
-        ULONG_PTR appAff;
-        ULONG_PTR sysAff;
-        
-        if (GetProcessAffinityMask(hProcess, &appAff, &sysAff))
-        {
-            // remove non accessible processors
-            ULONG_PTR currentAffinity = affinity & appAff;
-            
-            if (!currentAffinity)
-                TC_LOG_ERROR("server.authserver", "Processors marked in UseProcessors bitmask (hex) %x are not accessible for the authserver. Accessible processors bitmask (hex): %x", affinity, appAff);
-            else if (SetProcessAffinityMask(hProcess, currentAffinity))
-                TC_LOG_INFO("server.authserver", "Using processors (bitmask, hex): %x", currentAffinity);
-            else
-                TC_LOG_ERROR("server.authserver", "Can't set used processors (hex): %x", currentAffinity);
->>>>>>> 818278a71e91613e07eba7444f1bb2b7afef23a0
+				TC_LOG_ERROR("server.authserver", "InvisibleCore: Can't set authserver process priority class.");
         }
     }
-    
-    if (highPriority)
-    {
-        if (SetPriorityClass(hProcess, HIGH_PRIORITY_CLASS))
-            TC_LOG_INFO("server.authserver", "authserver process priority class set to HIGH");
-        else
-            TC_LOG_ERROR("server.authserver", "Can't set authserver process priority class.");
-    }
-    
-#else // Linux
-    
+#elif __linux__ // Linux
+
     if (affinity > 0)
     {
         cpu_set_t mask;
@@ -255,24 +224,23 @@ extern int main(int argc, char** argv)
                 CPU_SET(i, &mask);
 
         if (sched_setaffinity(0, sizeof(mask), &mask))
-			TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
+			TC_LOG_ERROR("server.authserver", "InvisibleCore: Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
         else
         {
             CPU_ZERO(&mask);
             sched_getaffinity(0, sizeof(mask), &mask);
-			TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: Using processors (bitmask, hex): %lx", *(__cpu_mask*)(&mask));
+			TC_LOG_INFO("server.authserver", "InvisibleCore: Using processors (bitmask, hex): %lx", *(__cpu_mask*)(&mask));
         }
     }
 
     if (highPriority)
     {
         if (setpriority(PRIO_PROCESS, 0, PROCESS_HIGH_PRIORITY))
-			TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack:: Can't set authserver process priority class, error: %s", strerror(errno));
+			TC_LOG_ERROR("server.authserver", "InvisibleCore: Can't set authserver process priority class, error: %s", strerror(errno));
         else
-			TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: authserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
+			TC_LOG_INFO("server.authserver", "InvisibleCore: authserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
     }
-    
-#endif
+
 #endif
 
     // maximum counter for next ping
@@ -291,7 +259,7 @@ extern int main(int argc, char** argv)
         if ((++loopCounter) == numLoops)
         {
             loopCounter = 0;
-			TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: Ping MySQL to keep connection alive");
+			TC_LOG_INFO("server.authserver", "InvisibleCore: Ping MySQL to keep connection alive");
             LoginDatabase.KeepAlive();
         }
     }
@@ -299,7 +267,7 @@ extern int main(int argc, char** argv)
     // Close the Database Pool and library
     StopDB();
 
-	TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: Halting process...");
+	TC_LOG_INFO("server.authserver", "InvisibleCore: Halting process...");
     return 0;
 }
 
@@ -311,32 +279,32 @@ bool StartDB()
     std::string dbstring = sConfigMgr->GetStringDefault("LoginDatabaseInfo", "");
     if (dbstring.empty())
     {
-		TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Database not specified");
+		TC_LOG_ERROR("server.authserver", "InvisibleCore: Database not specified");
         return false;
     }
 
     int32 worker_threads = sConfigMgr->GetIntDefault("LoginDatabase.WorkerThreads", 1);
     if (worker_threads < 1 || worker_threads > 32)
     {
-		TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Improper value specified for LoginDatabase.WorkerThreads, defaulting to 1.");
+		TC_LOG_ERROR("server.authserver", "InvisibleCore: Improper value specified for LoginDatabase.WorkerThreads, defaulting to 1.");
         worker_threads = 1;
     }
 
     int32 synch_threads = sConfigMgr->GetIntDefault("LoginDatabase.SynchThreads", 1);
     if (synch_threads < 1 || synch_threads > 32)
     {
-		TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Improper value specified for LoginDatabase.SynchThreads, defaulting to 1.");
+		TC_LOG_ERROR("server.authserver", "InvisibleCore: Improper value specified for LoginDatabase.SynchThreads, defaulting to 1.");
         synch_threads = 1;
     }
 
     // NOTE: While authserver is singlethreaded you should keep synch_threads == 1. Increasing it is just silly since only 1 will be used ever.
     if (!LoginDatabase.Open(dbstring, uint8(worker_threads), uint8(synch_threads)))
     {
-		TC_LOG_ERROR("server.authserver", "Junky & Symbolix Repack: Cannot connect to database");
+		TC_LOG_ERROR("server.authserver", "InvisibleCore: Cannot connect to database");
         return false;
     }
 
-	TC_LOG_INFO("server.authserver", "Junky & Symbolix Repack: Started auth database connection pool.");
+	TC_LOG_INFO("server.authserver", "InvisibleCore: Started auth database connection pool.");
     sLog->SetRealmId(0); // Enables DB appenders when realm is set.
     return true;
 }

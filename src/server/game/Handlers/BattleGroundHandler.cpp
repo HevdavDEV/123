@@ -523,7 +523,7 @@ void WorldSession::HandleBattlefieldLeaveOpcode(WorldPacket& recvData)
     // not allow leave battleground in combat
     if (_player->IsInCombat())
         if (Battleground* bg = _player->GetBattleground())
-            if (bg->GetStatus() != STATUS_WAIT_LEAVE && !bg->isArena())
+            if (bg->GetStatus() != STATUS_WAIT_LEAVE)
                 return;
 
     _player->LeaveBattleground();
@@ -609,6 +609,13 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recvData)
     if (_player->InBattleground())
         return;
 
+    Creature* unit = GetPlayer()->GetMap()->GetCreature(guid);
+    if (!unit)
+        return;
+
+    if (!unit->IsBattleMaster())                             // it's not battle master
+        return;
+
     uint8 arenatype = 0;
     uint32 arenaRating = 0;
     uint32 matchmakerRating = 0;
@@ -628,17 +635,6 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recvData)
             TC_LOG_ERROR("network", "Unknown arena slot %u at HandleBattlemasterJoinArena()", arenaslot);
             return;
     }
-
-    // challenge script by SymbolixDEV
-    if (_player->getSkirmishStatus((ArenaType)arenatype) != SKIRMISH_PREPEAR) {
-        Creature* unit = GetPlayer()->GetMap()->GetCreature(guid);
-        if (!unit)
-            return;
-
-        if (!unit->IsBattleMaster())                             // it's not battle master
-            return;
-    }
-    // challenge script by SymbolixDEV
 
     //check existance
     Battleground* bg = sBattlegroundMgr->GetBattlegroundTemplate(BATTLEGROUND_AA);
@@ -762,12 +758,6 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recvData)
         SendPacket(&data);
         TC_LOG_DEBUG("bg.battleground", "Battleground: player joined queue for arena, skirmish, bg queue type %u bg type %u: GUID %u, NAME %s", bgQueueTypeId, bgTypeId, _player->GetGUIDLow(), _player->GetName().c_str());
     }
-
-    // challenge script by SymbolixDEV
-    if (_player->getSkirmishStatus((ArenaType)arenatype) == SKIRMISH_PREPEAR)
-        _player->setSkirmishStatus((ArenaType)arenatype, SKIRMISH_JOINED);
-    // challenge script by SymbolixDEV
-
     sBattlegroundMgr->ScheduleQueueUpdate(matchmakerRating, arenatype, bgQueueTypeId, bgTypeId, bracketEntry->GetBracketId());
 }
 

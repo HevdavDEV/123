@@ -82,7 +82,6 @@ void Transmogrification::PresetTransmog(Player* player, Item* itemTransmogrified
     // Custom
     if (GetFakeEntry(itemTransmogrified->GetGUID()))
         DeleteFakeEntry(player, slot, itemTransmogrified);
-		sTransmogrification->SetFakeEntry(player, fakeEntry, slot, itemTransmogrified);
 
     // All okay, proceed
     // itemTransmogrified->SetEnchantment(TRANSMOGRIFY_ENCHANTMENT_SLOT, newEntry, 0, 0);

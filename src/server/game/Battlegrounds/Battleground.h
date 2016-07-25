@@ -195,11 +195,7 @@ enum ScoreType
     SCORE_SECONDARY_OBJECTIVES  = 17,
     //SOTA
     SCORE_DESTROYED_DEMOLISHER  = 18,
-    SCORE_DESTROYED_WALL        = 19,
-    /** World of Warcraft Armory **/
-    SCORE_DAMAGE_TAKEN          = 20,
-    SCORE_HEALING_TAKEN         = 21
-    /** World of Warcraft Armory **/
+    SCORE_DESTROYED_WALL        = 19
 };
 
 enum ArenaType
@@ -245,7 +241,7 @@ enum BattlegroundStartingEventsIds
 struct BattlegroundScore
 {
     BattlegroundScore() : KillingBlows(0), Deaths(0), HonorableKills(0), BonusHonor(0),
-        DamageDone(0), HealingDone(0), DamageTaken(0), HealingTaken(0)
+        DamageDone(0), HealingDone(0)
     { }
 
     virtual ~BattlegroundScore() { }                        //virtual destructor is used when deleting score from scores map
@@ -256,10 +252,6 @@ struct BattlegroundScore
     uint32 BonusHonor;
     uint32 DamageDone;
     uint32 HealingDone;
-    /** World of Warcraft Armory **/
-    uint32 DamageTaken;
-    uint32 HealingTaken;
-    /** World of Warcraft Armory **/
 };
 
 enum BGHonorMode
@@ -397,8 +389,8 @@ class Battleground
 
         void StartBattleground();
 
-        GameObject* GetBGObject(uint32 type, bool logError = true);
-        Creature* GetBGCreature(uint32 type, bool logError = true);
+        GameObject* GetBGObject(uint32 type);
+        Creature* GetBGCreature(uint32 type);
 
         // Location
         void SetMapId(uint32 MapID) { m_MapId = MapID; }
@@ -605,7 +597,6 @@ class Battleground
         BattlegroundStatus m_Status;
         uint32 m_ClientInstanceID;                          // the instance-id which is sent to the client and without any other internal use
         uint32 m_StartTime;
-        time_t startbgtime;
         uint32 m_ResetStatTimer;
         uint32 m_ValidStartPositionTimer;
         int32 m_EndTime;                                    // it is set to 120000 when bg is ending and it decreases itself
