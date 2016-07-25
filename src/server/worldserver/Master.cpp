@@ -100,7 +100,7 @@ public:
         if (!_delaytime)
             return;
 
-		TC_LOG_INFO("server.worldserver", "InvisibleCore: Starting up anti-freeze thread (%u seconds max stuck time)...", _delaytime/1000);
+		TC_LOG_INFO("server.worldserver", "RageFire: Starting up anti-freeze thread (%u seconds max stuck time)...", _delaytime/1000);
         _loops = 0;
         _lastChange = 0;
         while (!World::IsStopped())
@@ -117,11 +117,11 @@ public:
             /* possible freeze
             else if (getMSTimeDiff(_lastChange, curtime) > _delaytime)
             {
-				TC_LOG_ERROR("server.worldserver", "InvisibleCore: World Thread hangs, kicking out server!");
+				TC_LOG_ERROR("server.worldserver", "RageFire: World Thread hangs, kicking out server!");
                 ASSERT(false);
             } */
         }
-		TC_LOG_INFO("server.worldserver", "InvisibleCore: Anti-freeze thread exiting without problems.");
+		TC_LOG_INFO("server.worldserver", "RageFire: Anti-freeze thread exiting without problems.");
     }
 };
 
@@ -132,20 +132,20 @@ int Master::Run()
     BigNumber seed1;
     seed1.SetRand(16 * 8);
 
-    TC_LOG_INFO("server.worldserver", "InvisibleCore (worldserver-daemon)", _FULLVERSION);
+    TC_LOG_INFO("server.worldserver", "RageFire (worldserver-daemon)", _FULLVERSION);
     TC_LOG_INFO("server.worldserver", "<Ctrl-C> to stop.\n");
 
-    TC_LOG_INFO("server.worldserver", "InvisibleCore 3.3.5a Emulator worldserver");
+    TC_LOG_INFO("server.worldserver", "RageFire 3.3.5a Emulator worldserver");
 
     /// worldserver PID file creation
     std::string pidFile = sConfigMgr->GetStringDefault("PidFile", "");
     if (!pidFile.empty())
     {
         if (uint32 pid = CreatePIDFile(pidFile))
-			TC_LOG_INFO("server.worldserver", "InvisibleCore: Daemon PID: %u\n", pid);
+			TC_LOG_INFO("server.worldserver", "RageFire: Daemon PID: %u\n", pid);
         else
         {
-			TC_LOG_ERROR("server.worldserver", "InvisibleCore: Cannot create PID file %s.\n", pidFile.c_str());
+			TC_LOG_ERROR("server.worldserver", "RageFire: Cannot create PID file %s.\n", pidFile.c_str());
             return 1;
         }
     }
@@ -210,20 +210,20 @@ int Master::Run()
                 ULONG_PTR currentAffinity = affinity & appAff;            // remove non accessible processors
 
                 if (!currentAffinity)
-					TC_LOG_ERROR("server.worldserver", "InvisibleCore: Processors marked in UseProcessors bitmask (hex) %x are not accessible for the worldserver. Accessible processors bitmask (hex): %x", affinity, appAff);
+					TC_LOG_ERROR("server.worldserver", "RageFire: Processors marked in UseProcessors bitmask (hex) %x are not accessible for the worldserver. Accessible processors bitmask (hex): %x", affinity, appAff);
                 else if (SetProcessAffinityMask(hProcess, currentAffinity))
-					TC_LOG_INFO("server.worldserver", "InvisibleCore: Using processors (bitmask, hex): %x", currentAffinity);
+					TC_LOG_INFO("server.worldserver", "RageFire: Using processors (bitmask, hex): %x", currentAffinity);
                 else
-					TC_LOG_ERROR("server.worldserver", "InvisibleCore: Can't set used processors (hex): %x", currentAffinity);
+					TC_LOG_ERROR("server.worldserver", "RageFire: Can't set used processors (hex): %x", currentAffinity);
             }
         }
 
         if (highPriority)
         {
             if (SetPriorityClass(hProcess, HIGH_PRIORITY_CLASS))
-				TC_LOG_INFO("server.worldserver", "InvisibleCore: worldserver process priority class set to HIGH");
+				TC_LOG_INFO("server.worldserver", "RageFire: worldserver process priority class set to HIGH");
             else
-				TC_LOG_ERROR("server.worldserver", "InvisibleCore: Can't set worldserver process priority class.");
+				TC_LOG_ERROR("server.worldserver", "RageFire: Can't set worldserver process priority class.");
         }
     }
 #elif __linux__ // Linux
@@ -238,21 +238,21 @@ int Master::Run()
                 CPU_SET(i, &mask);
 
         if (sched_setaffinity(0, sizeof(mask), &mask))
-			TC_LOG_ERROR("server.worldserver", "InvisibleCore: Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
+			TC_LOG_ERROR("server.worldserver", "RageFire: Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
         else
         {
             CPU_ZERO(&mask);
             sched_getaffinity(0, sizeof(mask), &mask);
-			TC_LOG_INFO("server.worldserver", "InvisibleCore: Using processors (bitmask, hex): %lx", *(__cpu_mask*)(&mask));
+			TC_LOG_INFO("server.worldserver", "RageFire: Using processors (bitmask, hex): %lx", *(__cpu_mask*)(&mask));
         }
     }
 
     if (highPriority)
     {
         if (setpriority(PRIO_PROCESS, 0, PROCESS_HIGH_PRIORITY))
-			TC_LOG_ERROR("server.worldserver", "InvisibleCore: Can't set worldserver process priority class, error: %s", strerror(errno));
+			TC_LOG_ERROR("server.worldserver", "RageFire: Can't set worldserver process priority class, error: %s", strerror(errno));
         else
-			TC_LOG_INFO("server.worldserver", "InvisibleCore: worldserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
+			TC_LOG_INFO("server.worldserver", "RageFire: worldserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
     }
 
 #endif
@@ -282,7 +282,7 @@ int Master::Run()
 
     if (sWorldSocketMgr->StartNetwork(worldPort, bindIp.c_str()) == -1)
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Failed to start network");
+		TC_LOG_ERROR("server.worldserver", "RageFire: Failed to start network");
         World::StopNow(ERROR_EXIT_CODE);
         // go down and shutdown the server
     }
@@ -290,7 +290,7 @@ int Master::Run()
     // set server online (allow connecting now)
     LoginDatabase.DirectPExecute("UPDATE realmlist SET flag = flag & ~%u, population = 0 WHERE id = '%u'", REALM_FLAG_INVALID, realmID);
 
-    TC_LOG_INFO("server.worldserver", "InvisibleCore Server is online!...", _FULLVERSION);
+    TC_LOG_INFO("server.worldserver", "RageFire Server is online!...", _FULLVERSION);
 
     // when the main thread closes the singletons get unloaded
     // since worldrunnable uses them, it will crash if unloaded after master
@@ -312,7 +312,7 @@ int Master::Run()
 
     _StopDB();
 
-	TC_LOG_INFO("server.worldserver", "InvisibleCore: Server is Shutdowning ");
+	TC_LOG_INFO("server.worldserver", "RageFire: Server is Shutdowning ");
 
     if (cliThread)
     {
@@ -384,14 +384,14 @@ bool Master::_StartDB()
     dbString = sConfigMgr->GetStringDefault("WorldDatabaseInfo", "");
     if (dbString.empty())
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: World database not specified in configuration file");
+		TC_LOG_ERROR("server.worldserver", "RageFire: World database not specified in configuration file");
         return false;
     }
 
     asyncThreads = uint8(sConfigMgr->GetIntDefault("WorldDatabase.WorkerThreads", 1));
     if (asyncThreads < 1 || asyncThreads > 32)
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: World database: invalid number of worker threads specified. "
+		TC_LOG_ERROR("server.worldserver", "RageFire: World database: invalid number of worker threads specified. "
             "Please pick a value between 1 and 32.");
         return false;
     }
@@ -400,7 +400,7 @@ bool Master::_StartDB()
     ///- Initialize the world database
     if (!WorldDatabase.Open(dbString, asyncThreads, synchThreads))
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Cannot connect to world database %s", dbString.c_str());
+		TC_LOG_ERROR("server.worldserver", "RageFire: Cannot connect to world database %s", dbString.c_str());
         return false;
     }
 
@@ -408,14 +408,14 @@ bool Master::_StartDB()
     dbString = sConfigMgr->GetStringDefault("CharacterDatabaseInfo", "");
     if (dbString.empty())
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Character database not specified in configuration file");
+		TC_LOG_ERROR("server.worldserver", "RageFire: Character database not specified in configuration file");
         return false;
     }
 
     asyncThreads = uint8(sConfigMgr->GetIntDefault("CharacterDatabase.WorkerThreads", 1));
     if (asyncThreads < 1 || asyncThreads > 32)
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Character database: invalid number of worker threads specified. "
+		TC_LOG_ERROR("server.worldserver", "RageFire: Character database: invalid number of worker threads specified. "
             "Please pick a value between 1 and 32.");
         return false;
     }
@@ -425,7 +425,7 @@ bool Master::_StartDB()
     ///- Initialize the Character database
     if (!CharacterDatabase.Open(dbString, asyncThreads, synchThreads))
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Cannot connect to Character database %s", dbString.c_str());
+		TC_LOG_ERROR("server.worldserver", "RageFire: Cannot connect to Character database %s", dbString.c_str());
         return false;
     }
 
@@ -433,14 +433,14 @@ bool Master::_StartDB()
     dbString = sConfigMgr->GetStringDefault("LoginDatabaseInfo", "");
     if (dbString.empty())
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Login database not specified in configuration file");
+		TC_LOG_ERROR("server.worldserver", "RageFire: Login database not specified in configuration file");
         return false;
     }
 
     asyncThreads = uint8(sConfigMgr->GetIntDefault("LoginDatabase.WorkerThreads", 1));
     if (asyncThreads < 1 || asyncThreads > 32)
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Login database: invalid number of worker threads specified. "
+		TC_LOG_ERROR("server.worldserver", "RageFire: Login database: invalid number of worker threads specified. "
             "Please pick a value between 1 and 32.");
         return false;
     }
@@ -449,7 +449,7 @@ bool Master::_StartDB()
     ///- Initialise the login database
     if (!LoginDatabase.Open(dbString, asyncThreads, synchThreads))
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Cannot connect to login database %s", dbString.c_str());
+		TC_LOG_ERROR("server.worldserver", "RageFire: Cannot connect to login database %s", dbString.c_str());
         return false;
     }
 
@@ -457,10 +457,10 @@ bool Master::_StartDB()
     realmID = sConfigMgr->GetIntDefault("RealmID", 0);
     if (!realmID)
     {
-		TC_LOG_ERROR("server.worldserver", "InvisibleCore: Realm ID not defined in configuration file");
+		TC_LOG_ERROR("server.worldserver", "RageFire: Realm ID not defined in configuration file");
         return false;
     }
-	TC_LOG_INFO("server.worldserver", "InvisibleCore: Realm running as realm ID %d", realmID);
+	TC_LOG_INFO("server.worldserver", "RageFire: Realm running as realm ID %d", realmID);
 
     ///- Clean the database before starting
     ClearOnlineAccounts();
@@ -470,7 +470,7 @@ bool Master::_StartDB()
 
     sWorld->LoadDBVersion();
 
-	TC_LOG_INFO("server.worldserver", "InvisibleCore: Using World DB: %s", sWorld->GetDBVersion());
+	TC_LOG_INFO("server.worldserver", "RageFire: Using World DB: %s", sWorld->GetDBVersion());
     return true;
 }
 
