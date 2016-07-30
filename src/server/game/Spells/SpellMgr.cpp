@@ -3125,6 +3125,9 @@ void SpellMgr::LoadSpellInfoCorrections()
                 spellInfo->Effects[EFFECT_0].TriggerSpell = 36325; // They Must Burn Bomb Drop (DND)
                 break;
             case 49838: // Stop Time
+			case 53651: // Light's Beacon (Hidden periodic aura on Beacon of Light target)
+			case 50259: // Daze from Feral Charge - Cat
+			case 49376: // Feral Charge - Cat
                 spellInfo->AttributesEx3 |= SPELL_ATTR3_NO_INITIAL_AGGRO;
                 break;
             case 61407: // Energize Cores
@@ -3805,6 +3808,28 @@ void SpellMgr::LoadSpellInfoCorrections()
             // The spells below are here because their effect 1 is giving warning due to
             // triggered spell not found in any dbc and is missing from encounter source* of data.
             // Even judged as clientside these spells can't be guessed for* now.
+            case 32727: // Arena Preparation - remove invisibility aura
+                break;
+            case 12723: // Sweeping Strikes.
+                spellInfo->Attributes |= SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
+                spellInfo->Attributes |= SPELL_ATTR0_ABILITY;
+                spellInfo->Attributes |= SPELL_ATTR0_DONT_AFFECT_SHEATH_STATE;
+                spellInfo->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
+                spellInfo->AttributesEx2 |= SPELL_ATTR2_UNK7;
+                spellInfo->AttributesEx2 |= SPELL_ATTR2_UNK22, SPELL_ATTR2_CANT_CRIT;
+                spellInfo->AttributesEx3 |= SPELL_ATTR3_TRIGGERED_CAN_TRIGGER_PROC_2;
+                spellInfo->AttributesEx3 |= SPELL_ATTR3_NO_DONE_BONUS;
+                spellInfo->AttributesEx3 |= SPELL_ATTR3_DONT_DISPLAY_RANGE;
+                spellInfo->AttributesEx5 |= SPELL_ATTR5_UNK15;
+                break;
+            case 57973: // Deadly Poison.
+            case 57968: // Instant Poison.
+            case 57978: // Wound Poison.
+            case 57982: // Anesthetic Poison.
+            case 3408: // Crippling Poison.
+            case 5761: // Mind-numbing Poison.
+                spellInfo->AttributesEx2 |= SPELL_ATTR2_PRESERVE_ENCHANT_IN_ARENA;
+                break;
             case 49462: // Call Ruby Drake
             case 49461: // Call Amber Drake
             case 49345: // Call Emerald Drake
@@ -3834,6 +3859,9 @@ void SpellMgr::LoadSpellInfoCorrections()
                 // Crashes client on pressing ESC
                 spellInfo->AttributesEx4 &= ~SPELL_ATTR4_TRIGGERED;
                 break;
+			case 24259: // Spell Lock
+				spellInfo->Speed = 80.0f;
+				break;
             // ISLE OF CONQUEST SPELLS
             //
             case 66551: // Teleport

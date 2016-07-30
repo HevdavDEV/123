@@ -1424,7 +1424,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                 if (!caster)
                     break;
                 // Improved Fear
-                if (GetSpellInfo()->SpellFamilyFlags[1] & 0x00000400)
+                if (GetMaxDuration() && GetSpellInfo()->SpellFamilyFlags[1] & 0x00000400)
                 {
                     if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 98, 0))
                     {
@@ -1668,6 +1668,16 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                         caster->RemoveAurasDueToSpell(100001);
                 }
             }
+             if (!caster)
+                    break;
+                if (Unit *owner = caster->GetOwner())
+                    if (owner->HasAura(56250)) // Glyph of Succubus
+                    {
+                        target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE, 0, target->GetAura(32409)); // SW:D shall not be removed.
+                        target->RemoveAurasByType(SPELL_AURA_PERIODIC_DAMAGE_PERCENT);
+                        target->RemoveAurasByType(SPELL_AURA_PERIODIC_LEECH);
+                    }
+                break;
             break;
     }
 }

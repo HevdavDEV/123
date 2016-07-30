@@ -12733,17 +12733,20 @@ void Player::SetVisibleItemSlot(uint8 slot, Item* pItem)
 {
     if (pItem)
     {
-        // custom
         if (uint32 entry = sTransmogrification->GetFakeEntry(pItem->GetGUID()))
             SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), entry);
         else
-		SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetEntry());
-        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetEntry());
+            SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetEntry());
         SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 0, pItem->GetEnchantmentId(PERM_ENCHANTMENT_SLOT));
         SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 1, pItem->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT));
     }
     else
-;}
+    {
+        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), 0);
+        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 0);
+    }
+}
+
 
 void Player::VisualizeItem(uint8 slot, Item* pItem)
 {
@@ -21792,11 +21795,7 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
     uint32 currentVendor = GetSession()->GetCurrentVendorEntry();
     if (currentVendor && creature->GetGUIDLow() != GetSession()->GetCurrentVendorGUID())
         return false; // Cheating
-		    if(creature->GetScriptName() == "NPC_TransmogDisplayVendor")
-    {
-        return false;
-    }
-
+		    
     VendorItemData const* vItems = currentVendor ? sObjectMgr->GetNpcVendorItemList(currentVendor) : creature->GetVendorItems();
     if (!vItems || vItems->Empty())
     {

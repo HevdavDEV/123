@@ -1472,7 +1472,7 @@ void AddCustomScripts()
 	AddSC_TitleNpc();
 	AddSC_Npc_skill();
 	AddSC_Teleporter_NPC_CreatureScript();
-	AddSC_Top5_Killers()
+	AddSC_Top5_Killers();
 	AddSC_npc_welcome();
 	AddSC_Boss_Announcer();
 	AddSC_Mod_AutoLearn();

@@ -1122,10 +1122,18 @@ void Unit::CalculateSpellDamageTaken(SpellNonMeleeDamage* damageInfo, int32 dama
 
     // Calculate absorb resist
     if (damage > 0)
-    {
-        CalcAbsorbResist(victim, damageSchoolMask, SPELL_DIRECT_DAMAGE, damage, &damageInfo->absorb, &damageInfo->resist, spellInfo);
-        damage -= damageInfo->absorb + damageInfo->resist;
-    }
+	{
+		switch (spellInfo->SpellIconID)
+		{
+            // Chaos Bolt - "Chaos Bolt cannot be resisted, and pierces through all absorption effects."
+		case 3178:
+			break;
+		default:
+			CalcAbsorbResist(victim, damageSchoolMask, SPELL_DIRECT_DAMAGE, damage, &damageInfo->absorb, &damageInfo->resist, spellInfo);
+			damage -= damageInfo->absorb + damageInfo->resist;
+			break;
+		}
+	}
     else
         damage = 0;
 
@@ -8460,6 +8468,7 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
         // Finish movies that add combo
         case 14189: // Seal Fate (Netherblade set)
         case 14157: // Ruthlessness
+		case 70802: // Rogue T10 4P Bonus
         {
             if (!victim || victim == this)
                 return false;
@@ -14212,6 +14221,9 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
         bool takeCharges = false;
         SpellInfo const* spellInfo = i->aura->GetSpellInfo();
         uint32 Id = i->aura->GetId();
+
+        if (Id == 56817 && procSpell != NULL && procSpell->Id != 56815) // Hack-Fix Rune Strike
+            continue;
 
         AuraApplication* aurApp = i->aura->GetApplicationOfTarget(GetGUID());
 

@@ -453,10 +453,14 @@ class spell_hun_masters_call : public SpellScriptLoader
                     // there is a possibility that this effect should access effect 0 (dummy) target, but i dubt that
                     // it's more likely that on on retail it's possible to call target selector based on dbc values
                     // anyways, we're using GetExplTargetUnit() here and it's ok
-                    if (Unit* ally = GetExplTargetUnit())
+                    if (Unit* target = GetExplTargetUnit())
                     {
-                        target->CastSpell(ally, GetEffectValue(), castMask);
-                        target->CastSpell(ally, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask);
+						target->CastSpell(target, GetEffectValue(), castMask);
+						target->CastSpell(target, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask);
+						target->RemoveMovementImpairingAuras(); // remove already applied root and snare from pet
+                        target->RemoveMovementImpairingAuras(); // remove already applied root and snare from pet's target
+                        target->CastSpell(target, GetEffectValue(), castMask); // this should remove already applied root and snare from pet's target, but not working
+                        target->CastSpell(target, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask); // apply 4s root and snare immunity to pet's target
                     }
                 }
             }
